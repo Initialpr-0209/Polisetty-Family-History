@@ -11,6 +11,13 @@ const authOtp = document.querySelector("#authOtp");
 const otpHint = document.querySelector("#otpHint");
 const authOtpError = document.querySelector("#authOtpError");
 const authSubmit = document.querySelector("#authSubmit");
+const siteMenu = document.querySelector("#siteMenu");
+const siteMenuToggle = document.querySelector("#siteMenuToggle");
+const siteMenuPanel = document.querySelector("#siteMenuPanel");
+const siteInfoToast = document.querySelector("#siteInfoToast");
+const logoutButtons = document.querySelectorAll("[data-auth-logout]");
+const menuActionButtons = document.querySelectorAll("[data-menu-action]");
+const inactivityLimitMs = 10 * 60 * 1000;
 const invalidMobileNumbers = new Set([
   "0000000000",
   "1111111111",
@@ -29,6 +36,8 @@ const invalidMobileNumbers = new Set([
 let authMethod = "email";
 let generatedOtp = "";
 let otpSent = false;
+let inactivityTimer = 0;
+let toastTimer = 0;
 
 function isAlreadyAuthorized() {
   try {
@@ -43,12 +52,16 @@ function showProtectedSite() {
   authBody.classList.remove("auth-pending", "auth-locked");
   authBody.classList.add("auth-ready");
   if (authSection) authSection.hidden = true;
+  closeSiteMenu();
+  startInactivityTimer();
 }
 
 function showSignIn() {
   authBody.classList.remove("auth-pending", "auth-ready");
   authBody.classList.add("auth-locked");
   if (authSection) authSection.hidden = false;
+  closeSiteMenu();
+  stopInactivityTimer();
 }
 
 function validEmail(value) {
@@ -73,6 +86,61 @@ function resetOtp() {
   otpHint.textContent = "";
   authOtpError.textContent = "";
   authSubmit.textContent = "Send OTP";
+}
+
+function closeSiteMenu() {
+  if (!siteMenuToggle || !siteMenuPanel) return;
+  siteMenuToggle.setAttribute("aria-expanded", "false");
+  siteMenuPanel.hidden = true;
+}
+
+function toggleSiteMenu() {
+  if (!siteMenuToggle || !siteMenuPanel) return;
+  const nextOpen = siteMenuPanel.hidden;
+  siteMenuPanel.hidden = !nextOpen;
+  siteMenuToggle.setAttribute("aria-expanded", String(nextOpen));
+}
+
+function showSiteToast(message) {
+  if (!siteInfoToast) return;
+  window.clearTimeout(toastTimer);
+  siteInfoToast.textContent = message;
+  siteInfoToast.classList.add("show");
+  toastTimer = window.setTimeout(() => {
+    siteInfoToast.classList.remove("show");
+  }, 3600);
+}
+
+function resetAuthForm() {
+  authContactError.textContent = "";
+  authOtpError.textContent = "";
+  resetOtp();
+  setMethod("email");
+}
+
+function logoutUser(reason = "") {
+  localStorage.removeItem(familyAuthKey);
+  resetAuthForm();
+  showSignIn();
+  window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+  if (reason) showSiteToast(reason);
+}
+
+function stopInactivityTimer() {
+  window.clearTimeout(inactivityTimer);
+  inactivityTimer = 0;
+}
+
+function startInactivityTimer() {
+  stopInactivityTimer();
+  inactivityTimer = window.setTimeout(() => {
+    logoutUser("You have been signed out because the page was inactive for 10 minutes.");
+  }, inactivityLimitMs);
+}
+
+function recordActivity() {
+  if (!authBody.classList.contains("auth-ready")) return;
+  startInactivityTimer();
 }
 
 function setMethod(method) {
@@ -142,6 +210,28 @@ function handleAuthSubmit(event) {
 }
 
 if (authSection && authForm) {
+  siteMenuToggle?.addEventListener("click", toggleSiteMenu);
+  document.addEventListener("click", (event) => {
+    if (!siteMenu || siteMenu.contains(event.target)) return;
+    closeSiteMenu();
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") closeSiteMenu();
+  });
+  logoutButtons.forEach((button) => {
+    button.addEventListener("click", () => logoutUser());
+  });
+  menuActionButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      if (button.dataset.menuAction === "about") {
+        showSiteToast("Polisetty Family History is a private family space created to preserve names, relationships, memories, and legacy across generations.");
+      }
+      closeSiteMenu();
+    });
+  });
+  ["click", "keydown", "mousemove", "scroll", "touchstart"].forEach((eventName) => {
+    window.addEventListener(eventName, recordActivity, { passive: true });
+  });
   authMethods.forEach((button) => {
     button.addEventListener("click", () => setMethod(button.dataset.authMethod));
   });
