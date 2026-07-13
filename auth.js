@@ -96,7 +96,10 @@ function issueOtp() {
   otpSent = true;
   otpSection.hidden = false;
   authSubmit.textContent = "Verify and Sign In";
-  otpHint.textContent = `Preview OTP: ${generatedOtp}`;
+  otpHint.textContent = authMethod === "email"
+    ? "OTP has been sent to the entered email address."
+    : "OTP has been sent to the entered mobile number.";
+  console.info("OTP service pending. Generated OTP for backend handoff:", generatedOtp);
   authOtp.focus();
 }
 
