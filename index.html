@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>POLISETTY FAMILY HISTORY</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="tree-locked auth-pending">
+    <section class="site-auth" id="siteAuth" aria-labelledby="authTitle">
+      <div class="auth-card">
+        <p class="auth-eyebrow">Polisetty Family History</p>
+        <h1 id="authTitle">Welcome to the Polisetty Family Tree</h1>
+        <p class="auth-copy">
+          Sign in securely to view and preserve our family history with care.
+        </p>
+
+        <div class="auth-tabs" role="group" aria-label="Choose sign in method">
+          <button class="auth-method active" type="button" data-auth-method="email">Email</button>
+          <button class="auth-method" type="button" data-auth-method="mobile">Mobile</button>
+        </div>
+
+        <form class="auth-form" id="authForm" novalidate>
+          <label class="auth-field">
+            <span id="authContactLabel">Email Address</span>
+            <input id="authContact" type="email" autocomplete="email" placeholder="name@example.com" />
+          </label>
+          <p class="auth-error" id="authContactError" role="alert"></p>
+
+          <div class="otp-section" id="otpSection" hidden>
+            <label class="auth-field">
+              <span>Enter OTP</span>
+              <input id="authOtp" type="text" inputmode="numeric" maxlength="6" placeholder="6 digit OTP" />
+            </label>
+            <p class="otp-hint" id="otpHint"></p>
+            <p class="auth-error" id="authOtpError" role="alert"></p>
+          </div>
+
+          <button class="auth-submit" id="authSubmit" type="submit">Send OTP</button>
+        </form>
+      </div>
+    </section>
+
+    <main>
+      <section class="home" id="home">
+        <div class="home-inner">
+          <h1>POLISETTY FAMILY</h1>
+          <p class="home-copy">
+            A heartfelt journey through generations, so far reached the 7th generation of our
+            Polisetty Family, preserving the names, relationships, memories, and legacy of our
+            ancestors for today's family and the generations yet to come.
+          </p>
+          <a class="tree-link" id="viewTreeLink" href="#family-tree">
+            <span>View Family Tree</span>
+          </a>
+          <div class="scroll-break" aria-hidden="true">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </div>
+      </section>
+
+      <section class="tree-page" id="family-tree" aria-labelledby="treeTitle">
+        <header class="tree-header">
+          <h2 id="treeTitle" class="tree-title">
+            <span>Polisetty</span>
+            <strong>Family Tree</strong>
+          </h2>
+        </header>
+
+        <nav class="generation-tabs" aria-label="Family generations">
+          <button class="tab-button active" type="button" data-generation="1">Parents</button>
+          <button class="tab-button" type="button" data-generation="2">Children</button>
+          <button class="tab-button" type="button" data-generation="3">Grandchildren</button>
+          <button class="tab-button" type="button" data-generation="4">Great Grandchildren</button>
+          <button class="tab-button" type="button" data-generation="5">Great Great Grandchildren</button>
+          <button class="tab-button" type="button" data-generation="6">Great Great Great Grandchildren</button>
+          <button class="tab-button" type="button" data-generation="7">Great Great Great Great Grandchildren</button>
+          <button class="tab-button" type="button" data-generation="all">Full Tree</button>
+        </nav>
+
+        <div class="search-row">
+          <label class="search-box">
+            <span>By Name</span>
+            <input id="searchInput" type="search" placeholder="By Name" autocomplete="off" />
+          </label>
+          <p class="category-message" id="categoryMessage" role="status"></p>
+          <p class="search-error" id="searchError" role="alert"></p>
+          <div class="suggestions" id="suggestions" role="listbox" aria-label="Name suggestions"></div>
+        </div>
+
+        <div class="workspace">
+          <section class="tree-panel" aria-label="Family tree diagram">
+            <div class="generation-labels" aria-hidden="true">
+              <div class="generation-label-track" id="generationLabelTrack">
+                <span><strong>Parents</strong><small>1st Generation</small></span>
+                <span><strong>Children</strong><small>2nd Generation</small></span>
+                <span><strong>Grandchildren</strong><small>3rd Generation</small></span>
+                <span><strong>Great Grandchildren</strong><small>4th Generation</small></span>
+                <span><strong>Great Great Grandchildren</strong><small>5th Generation</small></span>
+                <span><strong>Great Great Great Grandchildren</strong><small>6th Generation</small></span>
+                <span><strong>Great Great Great Great Grandchildren</strong><small>7th Generation</small></span>
+              </div>
+            </div>
+            <div class="tree-scroll" id="treeScroll">
+              <div id="treeCanvas" class="tree-canvas"></div>
+            </div>
+          </section>
+        </div>
+
+        <div class="modal-backdrop" id="detailModal" aria-hidden="true">
+          <aside class="details-panel" role="dialog" aria-modal="true" aria-live="polite" aria-label="Selected family member details">
+            <button class="modal-edit" id="requestEditButton" type="button" aria-label="Request access to edit">&#9998;</button>
+            <button class="modal-close" id="closeModal" type="button" aria-label="Close details">x</button>
+            <div class="portrait" id="detailPortrait"></div>
+            <p id="detailGeneration" class="detail-generation"></p>
+            <h3 id="detailName"></h3>
+            <p id="detailLife" class="detail-life"></p>
+            <p id="detailBio" class="detail-bio"></p>
+
+            <dl class="facts">
+              <div>
+                <dt>Date of Birth</dt>
+                <dd class="facts-date">
+                  <input id="detailBirth" type="text" placeholder="DDMMYYYY" readonly />
+                  <button class="date-na-button" type="button" aria-label="Set date of birth as not available" disabled>N/A</button>
+                  <button class="facts-calendar-button" type="button" aria-label="Choose date of birth" disabled></button>
+                  <input class="facts-calendar" type="date" aria-label="Date of birth calendar" disabled />
+                </dd>
+              </div>
+              <div>
+                <dt>Date of Death</dt>
+                <dd class="facts-date">
+                  <input id="detailDeath" type="text" placeholder="DDMMYYYY" readonly />
+                  <button class="date-na-button" type="button" aria-label="Set date of death as not available" disabled>N/A</button>
+                  <button class="facts-calendar-button" type="button" aria-label="Choose date of death" disabled></button>
+                  <input class="facts-calendar" type="date" aria-label="Date of death calendar" disabled />
+                </dd>
+              </div>
+              <div>
+                <dt>Date of Marriage</dt>
+                <dd class="facts-date">
+                  <input id="detailMarriage" type="text" placeholder="DDMMYYYY" readonly />
+                  <button class="date-na-button" type="button" aria-label="Set date of marriage as not available" disabled>N/A</button>
+                  <button class="facts-calendar-button" type="button" aria-label="Choose date of marriage" disabled></button>
+                  <input class="facts-calendar" type="date" aria-label="Date of marriage calendar" disabled />
+                </dd>
+              </div>
+              <div>
+                <dt>Relation</dt>
+                <dd class="facts-text">
+                  <input id="detailRelation" type="text" value="N/A" readonly />
+                </dd>
+              </div>
+              <div>
+                <dt>Birth Place</dt>
+                <dd class="facts-text">
+                  <input id="detailPlace" type="text" value="N/A" readonly />
+                </dd>
+              </div>
+              <div>
+                <dt>Occupation</dt>
+                <dd class="facts-text">
+                  <input id="detailOccupation" type="text" value="N/A" readonly />
+                </dd>
+              </div>
+              <div>
+                <dt>Studies</dt>
+                <dd class="facts-text">
+                  <input id="detailStudies" type="text" value="N/A" readonly />
+                </dd>
+              </div>
+            </dl>
+
+            <div class="detail-section">
+              <h4>Family Links</h4>
+              <div id="detailLinks" class="chip-list"></div>
+            </div>
+
+            <div class="detail-section">
+              <h4>Important Notes</h4>
+              <ul id="detailNotes" class="note-list"></ul>
+            </div>
+
+            <div class="detail-section update-request-section">
+              <button class="request-access-button" id="requestAccessButton" type="button">Request Access</button>
+              <button class="save-detail-button" id="saveDetailButton" type="button" hidden>Save Changes</button>
+              <p class="form-status" id="requestFormStatus" role="status"></p>
+            </div>
+          </aside>
+        </div>
+
+      </section>
+    </main>
+    <a class="top-link" href="#home" aria-label="Back to top">&uarr;</a>
+    <footer class="site-copyright">
+      &copy; 2026 Polisetty Family History. All rights reserved. Shared with respect for our family legacy; please do not copy, alter, republish, or misuse this content without permission.
+    </footer>
+
+    <script src="auth.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

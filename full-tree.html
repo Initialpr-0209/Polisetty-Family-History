@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>POLISETTY FAMILY HISTORY - FULL TREE</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body class="full-tree-body responsive-full-tree-body auth-pending">
+    <section class="site-auth" id="siteAuth" aria-labelledby="authTitle">
+      <div class="auth-card">
+        <p class="auth-eyebrow">Polisetty Family History</p>
+        <h1 id="authTitle">Welcome to the Polisetty Family Tree</h1>
+        <p class="auth-copy">
+          Sign in securely to view and preserve our family history with care.
+        </p>
+
+        <div class="auth-tabs" role="group" aria-label="Choose sign in method">
+          <button class="auth-method active" type="button" data-auth-method="email">Email</button>
+          <button class="auth-method" type="button" data-auth-method="mobile">Mobile</button>
+        </div>
+
+        <form class="auth-form" id="authForm" novalidate>
+          <label class="auth-field">
+            <span id="authContactLabel">Email Address</span>
+            <input id="authContact" type="email" autocomplete="email" placeholder="name@example.com" />
+          </label>
+          <p class="auth-error" id="authContactError" role="alert"></p>
+
+          <div class="otp-section" id="otpSection" hidden>
+            <label class="auth-field">
+              <span>Enter OTP</span>
+              <input id="authOtp" type="text" inputmode="numeric" maxlength="6" placeholder="6 digit OTP" />
+            </label>
+            <p class="otp-hint" id="otpHint"></p>
+            <p class="auth-error" id="authOtpError" role="alert"></p>
+          </div>
+
+          <button class="auth-submit" id="authSubmit" type="submit">Send OTP</button>
+        </form>
+      </div>
+    </section>
+
+    <main class="mobile-branch-tree-page">
+      <header class="branch-tree-header">
+        <div>
+          <h1 class="tree-title mobile-tree-title">
+            <span>Polisetty</span>
+            <strong>Family Tree</strong>
+          </h1>
+        </div>
+        <div class="branch-tree-actions" aria-label="Branch display controls">
+          <button id="expandBranches" type="button">Expand all</button>
+          <button id="collapseBranches" type="button">Collapse all</button>
+        </div>
+      </header>
+
+      <nav id="branchGenerationNav" class="branch-generation-nav" aria-label="Navigate by generation"></nav>
+
+      <section class="branch-tree-shell" aria-label="Polisetty family vertical branch tree">
+        <div id="branchTree" class="branch-tree"></div>
+      </section>
+
+      <nav class="branch-tree-footer" aria-label="Branch tree navigation">
+        <a class="back-link" href="index.html?return=tree">Back to MainPage</a>
+      </nav>
+
+      <div class="branch-detail-backdrop" id="branchDetailModal" aria-hidden="true">
+        <article class="branch-detail-card" role="dialog" aria-modal="true" aria-labelledby="branchDetailName">
+          <button class="branch-detail-close" id="branchDetailClose" type="button" aria-label="Close details">x</button>
+          <div class="branch-detail-hero" id="branchDetailHero"></div>
+          <p class="branch-detail-generation" id="branchDetailGeneration"></p>
+          <h2 id="branchDetailName"></h2>
+          <dl class="branch-detail-list">
+            <div>
+              <dt>Relation</dt>
+              <dd id="branchDetailRelation"></dd>
+            </div>
+            <div>
+              <dt>Generation</dt>
+              <dd id="branchDetailGenerationText"></dd>
+            </div>
+            <div>
+              <dt>Spouse</dt>
+              <dd id="branchDetailSpouse"></dd>
+            </div>
+            <div>
+              <dt>Parents</dt>
+              <dd id="branchDetailParents"></dd>
+            </div>
+          </dl>
+        </article>
+      </div>
+    </main>
+
+    <main class="full-tree-page desktop-wide-tree-page">
+      <section class="full-tree-shell" aria-label="Complete Polisetty family tree">
+        <div class="full-tree-tools">
+          <div class="full-tree-legend" aria-label="Navigate by generation">
+            <button type="button" data-generation="1"><i style="--dot: #53744c"></i> Parents</button>
+            <button type="button" data-generation="2"><i style="--dot: #b8873f"></i> Children</button>
+            <button type="button" data-generation="3"><i style="--dot: #2f6f82"></i> Grandchildren</button>
+            <button type="button" data-generation="4"><i style="--dot: #7b3e48"></i> Great Grandchildren</button>
+            <button type="button" data-generation="5"><i style="--dot: #5d5b8d"></i> Great Great Grandchildren</button>
+            <button type="button" data-generation="6"><i style="--dot: #416a8b"></i> Great Great Great Grandchildren</button>
+            <button type="button" data-generation="7"><i style="--dot: #9a5a32"></i> Great Great Great Great Grandchildren</button>
+          </div>
+          <div class="full-tree-view-tools">
+            <div class="view-mode-switch" aria-label="Tree view mode">
+              <button id="readableTree" class="active" type="button">Readable</button>
+              <button id="fitTree" type="button">Overview</button>
+            </div>
+            <div class="zoom-controls" aria-label="Full tree view controls">
+              <div class="zoom-slider">
+                <button id="zoomOutTree" class="tree-size-button" type="button" aria-label="Decrease tree size">
+                  <span class="tree-size-icon tree-size-small" aria-hidden="true"></span>
+                </button>
+                <input id="zoomSlider" type="range" min="20" max="150" value="70" aria-label="Tree view scale" />
+                <button id="zoomInTree" class="tree-size-button" type="button" aria-label="Increase tree size">
+                  <span class="tree-size-icon tree-size-medium" aria-hidden="true"></span>
+                </button>
+                <output id="zoomValue">70%</output>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="full-tree-scroll">
+          <div id="fullTreeViewport" class="full-tree-viewport">
+            <div id="fullTreeCanvas" class="full-tree-canvas"></div>
+          </div>
+        </div>
+      </section>
+      <nav class="full-tree-footer" aria-label="Full tree navigation">
+        <a class="back-link" href="index.html?return=tree">Back to MainPage</a>
+      </nav>
+    </main>
+    <footer class="site-copyright">
+      &copy; 2026 Polisetty Family History. All rights reserved. Shared with respect for our family legacy; please do not copy, alter, republish, or misuse this content without permission.
+    </footer>
+
+    <script src="auth.js"></script>
+    <script src="full-tree.js"></script>
+    <script src="branch-tree.js"></script>
+  </body>
+</html>
