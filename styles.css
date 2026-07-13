@@ -73,6 +73,10 @@ body.auth-ready .site-auth {
   display: none;
 }
 
+body.auth-ready > .site-menu {
+  display: block;
+}
+
 .auth-card {
   width: min(520px, 100%);
   padding: clamp(24px, 4vw, 38px);
@@ -191,7 +195,7 @@ body.auth-ready .site-auth {
   position: fixed;
   top: 18px;
   right: 18px;
-  z-index: 80;
+  z-index: 1000;
 }
 
 .site-menu-toggle {
@@ -257,7 +261,7 @@ body.auth-ready .site-auth {
   position: fixed;
   right: 18px;
   top: 76px;
-  z-index: 79;
+  z-index: 999;
   max-width: min(340px, calc(100vw - 36px));
   margin: 0;
   padding: 12px 14px;
