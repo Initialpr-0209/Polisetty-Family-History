@@ -62,6 +62,7 @@ function showSignIn() {
   if (authSection) authSection.hidden = false;
   closeSiteMenu();
   stopInactivityTimer();
+  window.scrollTo({ top: 0, left: 0, behavior: "auto" });
 }
 
 function validEmail(value) {
@@ -122,7 +123,6 @@ function logoutUser(reason = "") {
   localStorage.removeItem(familyAuthKey);
   resetAuthForm();
   showSignIn();
-  window.scrollTo({ top: 0, left: 0, behavior: "auto" });
   if (reason) showSiteToast(reason);
 }
 
