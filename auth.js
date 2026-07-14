@@ -99,6 +99,7 @@ function resetOtp() {
   pendingPhone = "";
   authOtp.value = "";
   otpSection.hidden = true;
+  otpSection.style.display = "none";
   otpHint.textContent = "";
   authOtpError.textContent = "";
   authSubmit.textContent = "Send OTP";
@@ -216,6 +217,7 @@ async function issueOtp() {
 
   otpSent = true;
   otpSection.hidden = false;
+  otpSection.style.display = "";
   authSubmit.textContent = "Verify and Sign In";
   otpHint.textContent = authMethod === "email"
     ? "OTP has been sent to the entered email address."
