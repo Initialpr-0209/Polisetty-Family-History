@@ -142,6 +142,10 @@ body.auth-ready > .site-menu {
   gap: 10px;
 }
 
+.otp-section[hidden] {
+  display: none !important;
+}
+
 .auth-field {
   display: grid;
   gap: 7px;

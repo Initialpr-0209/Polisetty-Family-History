@@ -209,7 +209,7 @@ async function issueOtp() {
     authSubmit.textContent = "Send OTP";
     authContactError.textContent =
       error.message === "Failed to fetch"
-        ? "Unable to reach OTP service. Please check Supabase Auth settings and internet access."
+        ? "Unable to reach OTP service. Please use the live HTTPS website and check Supabase Auth settings."
         : error.message || "Unable to send OTP. Please try again.";
     authContact.focus();
     return;
