@@ -34,19 +34,29 @@ const invalidMobileNumbers = new Set([
 ]);
 
 let authMethod = "email";
-let generatedOtp = "";
 let otpSent = false;
 let inactivityTimer = 0;
 let toastTimer = 0;
+let pendingContact = "";
+let pendingPhone = "";
 
-function isAlreadyAuthorized() {
-  try {
-    const session = JSON.parse(localStorage.getItem(familyAuthKey));
-    return Boolean(session?.authorized);
-  } catch (error) {
-    return false;
-  }
-}
+const supabaseSettings = window.POLISETTY_SUPABASE || {};
+const supabaseReady = Boolean(
+  window.supabase &&
+  supabaseSettings.url &&
+  supabaseSettings.anonKey &&
+  !supabaseSettings.url.includes("YOUR-") &&
+  !supabaseSettings.anonKey.includes("YOUR-")
+);
+const supabaseClient = supabaseReady
+  ? window.supabase.createClient(supabaseSettings.url, supabaseSettings.anonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+      },
+    })
+  : null;
+const phoneCountryCode = supabaseSettings.phoneCountryCode || "+91";
 
 function showProtectedSite() {
   authBody.classList.remove("auth-pending", "auth-locked");
@@ -73,6 +83,10 @@ function validMobile(value) {
   return /^\d{10}$/.test(value) && !invalidMobileNumbers.has(value);
 }
 
+function formatPhone(value) {
+  return `${phoneCountryCode}${value.trim()}`;
+}
+
 function currentContactValid() {
   const value = authContact.value.trim();
   if (authMethod === "email") return validEmail(value);
@@ -80,8 +94,9 @@ function currentContactValid() {
 }
 
 function resetOtp() {
-  generatedOtp = "";
   otpSent = false;
+  pendingContact = "";
+  pendingPhone = "";
   authOtp.value = "";
   otpSection.hidden = true;
   otpHint.textContent = "";
@@ -119,8 +134,9 @@ function resetAuthForm() {
   setMethod("email");
 }
 
-function logoutUser(reason = "") {
+async function logoutUser(reason = "") {
   localStorage.removeItem(familyAuthKey);
+  if (supabaseClient) await supabaseClient.auth.signOut();
   resetAuthForm();
   showSignIn();
   if (reason) showSiteToast(reason);
@@ -159,32 +175,93 @@ function setMethod(method) {
   authContact.focus();
 }
 
-function issueOtp() {
-  generatedOtp = String(Math.floor(100000 + Math.random() * 900000));
+async function issueOtp() {
+  if (!supabaseClient) {
+    authContactError.textContent = "OTP service is not connected yet. Please add Supabase URL and anon key in supabase-config.js.";
+    return;
+  }
+
+  authSubmit.disabled = true;
+  authSubmit.textContent = "Sending OTP...";
+  pendingContact = authContact.value.trim();
+  pendingPhone = authMethod === "mobile" ? formatPhone(pendingContact) : "";
+
+  const request = authMethod === "email"
+    ? supabaseClient.auth.signInWithOtp({
+        email: pendingContact,
+        options: { shouldCreateUser: true },
+      })
+    : supabaseClient.auth.signInWithOtp({
+        phone: pendingPhone,
+        options: { shouldCreateUser: true },
+      });
+
+  const { error } = await request;
+  authSubmit.disabled = false;
+
+  if (error) {
+    authSubmit.textContent = "Send OTP";
+    authContactError.textContent = error.message || "Unable to send OTP. Please try again.";
+    authContact.focus();
+    return;
+  }
+
   otpSent = true;
   otpSection.hidden = false;
   authSubmit.textContent = "Verify and Sign In";
   otpHint.textContent = authMethod === "email"
     ? "OTP has been sent to the entered email address."
     : "OTP has been sent to the entered mobile number.";
-  console.info("OTP service pending. Generated OTP for backend handoff:", generatedOtp);
   authOtp.focus();
 }
 
-function authorizeUser() {
+function authorizeUser(session) {
   localStorage.setItem(
     familyAuthKey,
     JSON.stringify({
       authorized: true,
       method: authMethod,
-      contact: authContact.value.trim(),
+      contact: pendingContact || authContact.value.trim(),
       signedInAt: new Date().toISOString(),
+      userId: session?.user?.id || "",
     })
   );
   showProtectedSite();
 }
 
-function handleAuthSubmit(event) {
+async function verifyOtp() {
+  if (!supabaseClient) {
+    authOtpError.textContent = "OTP service is not connected yet.";
+    return;
+  }
+
+  const token = authOtp.value.trim();
+  if (!/^\d{6}$/.test(token)) {
+    authOtpError.textContent = "Enter the 6 digit OTP.";
+    authOtp.focus();
+    return;
+  }
+
+  authSubmit.disabled = true;
+  authSubmit.textContent = "Verifying...";
+
+  const payload = authMethod === "email"
+    ? { email: pendingContact, token, type: "email" }
+    : { phone: pendingPhone, token, type: "sms" };
+  const { data, error } = await supabaseClient.auth.verifyOtp(payload);
+  authSubmit.disabled = false;
+
+  if (error) {
+    authSubmit.textContent = "Verify and Sign In";
+    authOtpError.textContent = error.message || "Invalid OTP.";
+    authOtp.focus();
+    return;
+  }
+
+  authorizeUser(data?.session);
+}
+
+async function handleAuthSubmit(event) {
   event.preventDefault();
   authContactError.textContent = "";
   authOtpError.textContent = "";
@@ -196,17 +273,27 @@ function handleAuthSubmit(event) {
   }
 
   if (!otpSent) {
-    issueOtp();
+    await issueOtp();
     return;
   }
 
-  if (authOtp.value.trim() !== generatedOtp) {
-    authOtpError.textContent = "Invalid OTP.";
-    authOtp.focus();
+  await verifyOtp();
+}
+
+async function initializeAuth() {
+  if (!supabaseClient) {
+    localStorage.removeItem(familyAuthKey);
+    showSignIn();
     return;
   }
 
-  authorizeUser();
+  const { data } = await supabaseClient.auth.getSession();
+  if (data?.session) {
+    authorizeUser(data.session);
+  } else {
+    localStorage.removeItem(familyAuthKey);
+    showSignIn();
+  }
 }
 
 if (authSection && authForm) {
@@ -246,9 +333,5 @@ if (authSection && authForm) {
   });
   authForm.addEventListener("submit", handleAuthSubmit);
 
-  if (isAlreadyAuthorized()) {
-    showProtectedSite();
-  } else {
-    showSignIn();
-  }
+  initializeAuth();
 }
