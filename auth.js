@@ -186,22 +186,30 @@ async function issueOtp() {
   pendingContact = authContact.value.trim();
   pendingPhone = authMethod === "mobile" ? formatPhone(pendingContact) : "";
 
-  const request = authMethod === "email"
-    ? supabaseClient.auth.signInWithOtp({
-        email: pendingContact,
-        options: { shouldCreateUser: true },
-      })
-    : supabaseClient.auth.signInWithOtp({
-        phone: pendingPhone,
-        options: { shouldCreateUser: true },
-      });
-
-  const { error } = await request;
+  let error = null;
+  try {
+    const response = authMethod === "email"
+      ? await supabaseClient.auth.signInWithOtp({
+          email: pendingContact,
+          options: { shouldCreateUser: true },
+        })
+      : await supabaseClient.auth.signInWithOtp({
+          phone: pendingPhone,
+          options: { shouldCreateUser: true },
+        });
+    error = response.error;
+  } catch (requestError) {
+    error = requestError;
+  }
   authSubmit.disabled = false;
 
   if (error) {
+    resetOtp();
     authSubmit.textContent = "Send OTP";
-    authContactError.textContent = error.message || "Unable to send OTP. Please try again.";
+    authContactError.textContent =
+      error.message === "Failed to fetch"
+        ? "Unable to reach OTP service. Please check Supabase Auth settings and internet access."
+        : error.message || "Unable to send OTP. Please try again.";
     authContact.focus();
     return;
   }
@@ -248,12 +256,23 @@ async function verifyOtp() {
   const payload = authMethod === "email"
     ? { email: pendingContact, token, type: "email" }
     : { phone: pendingPhone, token, type: "sms" };
-  const { data, error } = await supabaseClient.auth.verifyOtp(payload);
+  let data = null;
+  let error = null;
+  try {
+    const response = await supabaseClient.auth.verifyOtp(payload);
+    data = response.data;
+    error = response.error;
+  } catch (requestError) {
+    error = requestError;
+  }
   authSubmit.disabled = false;
 
   if (error) {
     authSubmit.textContent = "Verify and Sign In";
-    authOtpError.textContent = error.message || "Invalid OTP.";
+    authOtpError.textContent =
+      error.message === "Failed to fetch"
+        ? "Unable to reach OTP service. Please check your internet connection and try again."
+        : error.message || "Invalid OTP.";
     authOtp.focus();
     return;
   }
