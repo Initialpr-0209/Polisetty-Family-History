@@ -1,7 +1,7 @@
 window.POLISETTY_FIREBASE = {
-  apiKey: "YOUR-FIREBASE-API-KEY",
-  authDomain: "YOUR-FIREBASE-PROJECT.firebaseapp.com",
-  projectId: "YOUR-FIREBASE-PROJECT-ID",
-  appId: "YOUR-FIREBASE-APP-ID",
+  apiKey: "AIzaSyAT9hrQFOEmAltup2lhzG6hqxTlBpuMJeM",
+  authDomain: "polisetty-family-history.firebaseapp.com",
+  projectId: "polisetty-family-history",
+  appId: "1:133394944144:web:6ac32ae13b3264b050c815",
   phoneCountryCode: "+91",
 };
