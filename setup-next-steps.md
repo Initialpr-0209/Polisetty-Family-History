@@ -4,7 +4,7 @@
 
 The current website is a static HTML, CSS, and JavaScript project. It includes:
 
-- A Firebase sign-in gate with email link authentication and optional mobile OTP.
+- A Firebase sign-in gate with Google Sign-In and email link authentication.
 - A seven-generation Polisetty family tree.
 - A desktop/tablet/laptop detailed tree view.
 - A mobile-friendly branch view on the full tree page.
@@ -32,8 +32,8 @@ Use Firebase for the live sign-in page.
 
 1. Open Firebase Console and create a project.
 2. Go to Authentication > Sign-in method.
-3. Enable Email/Password and turn on Email link sign-in.
-4. Optional: enable Phone if you want real mobile OTP. Phone OTP may require extra Firebase/Twilio/billing setup depending on your account and country.
+3. Enable Google.
+4. Enable Email/Password and turn on Email link sign-in.
 5. Go to Project settings > General > Your apps.
 6. Add a Web app and copy the Firebase config.
 7. Paste those values into `firebase-config.js`.
@@ -49,6 +49,7 @@ Upload these changed files to GitHub:
 - `setup-next-steps.md`
 
 The old `supabase-config.js` is no longer required.
+Mobile OTP is not used in the current free setup.
 
 ## Required For A Database Version
 

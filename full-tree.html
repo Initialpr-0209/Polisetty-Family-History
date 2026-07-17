@@ -4,7 +4,9 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>POLISETTY FAMILY HISTORY - FULL TREE</title>
-    <link rel="stylesheet" href="styles.css?v=20260717-firebase-email-link" />
+    <link rel="icon" type="image/png" href="polisetty-family-logo-clean-square.png?v=20260717-google-auth" />
+    <link rel="apple-touch-icon" href="polisetty-family-logo-clean-square.png?v=20260717-google-auth" />
+    <link rel="stylesheet" href="styles.css?v=20260717-google-auth" />
   </head>
   <body class="full-tree-body responsive-full-tree-body auth-pending">
     <section class="site-auth" id="siteAuth" aria-labelledby="authTitle">
@@ -15,10 +17,12 @@
           Sign in securely to view and preserve our family history with care.
         </p>
 
-        <div class="auth-tabs" role="group" aria-label="Choose sign in method">
-          <button class="auth-method active" type="button" data-auth-method="email">Email</button>
-          <button class="auth-method" type="button" data-auth-method="mobile">Mobile</button>
-        </div>
+        <button class="google-auth-button" id="googleSignInButton" type="button">
+          <span class="google-auth-icon" aria-hidden="true">G</span>
+          <span>Continue with Google</span>
+        </button>
+
+        <div class="auth-divider"><span>or use email link</span></div>
 
         <form class="auth-form" id="authForm" novalidate>
           <label class="auth-field">
@@ -29,15 +33,14 @@
 
           <div class="otp-section" id="otpSection" hidden>
             <label class="auth-field">
-              <span>Enter Mobile OTP</span>
-              <input id="authOtp" type="text" inputmode="numeric" maxlength="6" placeholder="6 digit OTP" />
+              <span>Email Link Status</span>
+              <input id="authOtp" type="text" inputmode="numeric" maxlength="6" placeholder="Email link sent" />
             </label>
             <p class="otp-hint" id="otpHint"></p>
             <p class="auth-error" id="authOtpError" role="alert"></p>
           </div>
 
           <button class="auth-submit" id="authSubmit" type="submit">Send Sign-In Link</button>
-          <div id="recaptchaContainer" class="recaptcha-container" aria-hidden="true"></div>
         </form>
       </div>
     </section>
@@ -156,10 +159,10 @@
 
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
-    <script src="firebase-config.js?v=20260717-firebase-email-link"></script>
-    <script src="auth.js?v=20260717-firebase-email-link"></script>
-    <script src="full-tree.js?v=20260717-firebase-email-link"></script>
-    <script src="branch-tree.js?v=20260717-firebase-email-link"></script>
+    <script src="firebase-config.js?v=20260717-google-auth"></script>
+    <script src="auth.js?v=20260717-google-auth"></script>
+    <script src="full-tree.js?v=20260717-google-auth"></script>
+    <script src="branch-tree.js?v=20260717-google-auth"></script>
   </body>
 </html>
 
