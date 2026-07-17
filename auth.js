@@ -9,6 +9,7 @@ const authContactLabel = document.querySelector("#authContactLabel");
 const authContactError = document.querySelector("#authContactError");
 const otpSection = document.querySelector("#otpSection");
 const authOtp = document.querySelector("#authOtp");
+const authOtpField = authOtp?.closest(".auth-field");
 const otpHint = document.querySelector("#otpHint");
 const authOtpError = document.querySelector("#authOtpError");
 const authSubmit = document.querySelector("#authSubmit");
@@ -108,6 +109,10 @@ function resetOtp() {
   pendingPhone = "";
   confirmationResult = null;
   authOtp.value = "";
+  if (authOtpField) {
+    authOtpField.hidden = authMethod === "email";
+    authOtpField.style.display = authMethod === "email" ? "none" : "";
+  }
   otpSection.hidden = true;
   otpSection.style.display = "none";
   otpHint.textContent = "";
@@ -225,7 +230,10 @@ async function sendEmailLink() {
     otpHint.textContent = "A secure sign-in link has been sent to your email. Open that link to enter the family tree.";
     otpSection.hidden = false;
     otpSection.style.display = "";
-    authOtp.closest(".auth-field").hidden = true;
+    if (authOtpField) {
+      authOtpField.hidden = true;
+      authOtpField.style.display = "none";
+    }
     authSubmit.textContent = "Sign-In Link Sent";
     authSubmit.disabled = true;
   } catch (error) {
@@ -255,7 +263,10 @@ async function sendMobileOtp() {
   try {
     confirmationResult = await firebaseAuth.signInWithPhoneNumber(pendingPhone, ensureRecaptchaVerifier());
     otpSent = true;
-    authOtp.closest(".auth-field").hidden = false;
+    if (authOtpField) {
+      authOtpField.hidden = false;
+      authOtpField.style.display = "";
+    }
     otpSection.hidden = false;
     otpSection.style.display = "";
     authSubmit.textContent = "Verify and Sign In";
