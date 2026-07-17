@@ -290,6 +290,11 @@ async function initializeAuth() {
   const handledEmailLink = await finishEmailLinkSignIn();
   if (handledEmailLink) return;
 
+  const cachedSession = localStorage.getItem(familyAuthKey);
+  if (cachedSession) {
+    showProtectedSite();
+  }
+
   firebaseAuth.onAuthStateChanged((user) => {
     if (user) {
       authorizeUser(user, user.providerData?.[0]?.providerId === "google.com" ? "google" : "email");
