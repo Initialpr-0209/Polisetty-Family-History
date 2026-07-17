@@ -1,4 +1,5 @@
 const familyAuthKey = "polisettyFamilyAuth";
+const pendingEmailKey = "polisettyPendingEmail";
 const authBody = document.body;
 const authSection = document.querySelector("#siteAuth");
 const authForm = document.querySelector("#authForm");
@@ -11,6 +12,7 @@ const authOtp = document.querySelector("#authOtp");
 const otpHint = document.querySelector("#otpHint");
 const authOtpError = document.querySelector("#authOtpError");
 const authSubmit = document.querySelector("#authSubmit");
+const recaptchaContainer = document.querySelector("#recaptchaContainer");
 const siteMenu = document.querySelector("#siteMenu");
 const siteMenuToggle = document.querySelector("#siteMenuToggle");
 const siteMenuPanel = document.querySelector("#siteMenuPanel");
@@ -39,24 +41,31 @@ let inactivityTimer = 0;
 let toastTimer = 0;
 let pendingContact = "";
 let pendingPhone = "";
+let confirmationResult = null;
+let recaptchaVerifier = null;
 
-const supabaseSettings = window.POLISETTY_SUPABASE || {};
-const supabaseReady = Boolean(
-  window.supabase &&
-  supabaseSettings.url &&
-  supabaseSettings.anonKey &&
-  !supabaseSettings.url.includes("YOUR-") &&
-  !supabaseSettings.anonKey.includes("YOUR-")
+const firebaseSettings = window.POLISETTY_FIREBASE || {};
+const firebaseReady = Boolean(
+  window.firebase &&
+  firebaseSettings.apiKey &&
+  firebaseSettings.authDomain &&
+  firebaseSettings.projectId &&
+  !firebaseSettings.apiKey.includes("YOUR-") &&
+  !firebaseSettings.authDomain.includes("YOUR-") &&
+  !firebaseSettings.projectId.includes("YOUR-")
 );
-const supabaseClient = supabaseReady
-  ? window.supabase.createClient(supabaseSettings.url, supabaseSettings.anonKey, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-      },
-    })
-  : null;
-const phoneCountryCode = supabaseSettings.phoneCountryCode || "+91";
+
+const phoneCountryCode = firebaseSettings.phoneCountryCode || "+91";
+const firebaseAuth = firebaseReady ? initializeFirebaseAuth() : null;
+
+function initializeFirebaseAuth() {
+  if (!window.firebase.apps.length) {
+    window.firebase.initializeApp(firebaseSettings);
+  }
+  const auth = window.firebase.auth();
+  auth.useDeviceLanguage();
+  return auth;
+}
 
 function showProtectedSite() {
   authBody.classList.remove("auth-pending", "auth-locked");
@@ -97,12 +106,13 @@ function resetOtp() {
   otpSent = false;
   pendingContact = "";
   pendingPhone = "";
+  confirmationResult = null;
   authOtp.value = "";
   otpSection.hidden = true;
   otpSection.style.display = "none";
   otpHint.textContent = "";
   authOtpError.textContent = "";
-  authSubmit.textContent = "Send OTP";
+  authSubmit.textContent = authMethod === "email" ? "Send Sign-In Link" : "Send OTP";
 }
 
 function closeSiteMenu() {
@@ -125,7 +135,7 @@ function showSiteToast(message) {
   siteInfoToast.classList.add("show");
   toastTimer = window.setTimeout(() => {
     siteInfoToast.classList.remove("show");
-  }, 3600);
+  }, 4200);
 }
 
 function resetAuthForm() {
@@ -137,7 +147,8 @@ function resetAuthForm() {
 
 async function logoutUser(reason = "") {
   localStorage.removeItem(familyAuthKey);
-  if (supabaseClient) await supabaseClient.auth.signOut();
+  localStorage.removeItem(pendingEmailKey);
+  if (firebaseAuth) await firebaseAuth.signOut();
   resetAuthForm();
   showSignIn();
   if (reason) showSiteToast(reason);
@@ -176,72 +187,120 @@ function setMethod(method) {
   authContact.focus();
 }
 
-async function issueOtp() {
-  if (!supabaseClient) {
-    authContactError.textContent = "OTP service is not connected yet. Please add Supabase URL and anon key in supabase-config.js.";
-    return;
+function firebaseErrorMessage(error) {
+  const code = error?.code || "";
+  if (code === "auth/invalid-email") return "Invalid email address.";
+  if (code === "auth/invalid-phone-number") return "Invalid mobile number.";
+  if (code === "auth/too-many-requests") return "Too many attempts. Please try again later.";
+  if (code === "auth/unauthorized-domain") {
+    return "This website domain is not authorized in Firebase Authentication settings.";
   }
+  if (code === "auth/operation-not-allowed") {
+    return "This sign-in method is not enabled in Firebase Authentication.";
+  }
+  if (code === "auth/invalid-verification-code") return "Invalid OTP.";
+  if (code === "auth/missing-verification-code") return "Enter the 6 digit OTP.";
+  if (code === "auth/network-request-failed") return "Network error. Please check internet access and Firebase settings.";
+  return error?.message || "Authentication failed. Please try again.";
+}
 
+function getActionCodeSettings() {
+  const cleanPath = window.location.pathname.endsWith("/")
+    ? `${window.location.pathname}index.html`
+    : window.location.pathname;
+  return {
+    url: `${window.location.origin}${cleanPath}`,
+    handleCodeInApp: true,
+  };
+}
+
+async function sendEmailLink() {
+  authSubmit.disabled = true;
+  authSubmit.textContent = "Sending Link...";
+  pendingContact = authContact.value.trim();
+
+  try {
+    await firebaseAuth.sendSignInLinkToEmail(pendingContact, getActionCodeSettings());
+    localStorage.setItem(pendingEmailKey, pendingContact);
+    otpHint.textContent = "A secure sign-in link has been sent to your email. Open that link to enter the family tree.";
+    otpSection.hidden = false;
+    otpSection.style.display = "";
+    authOtp.closest(".auth-field").hidden = true;
+    authSubmit.textContent = "Sign-In Link Sent";
+    authSubmit.disabled = true;
+  } catch (error) {
+    console.error("Polisetty Firebase email sign-in failed", error);
+    authContactError.textContent = firebaseErrorMessage(error);
+    authSubmit.textContent = "Send Sign-In Link";
+    authSubmit.disabled = false;
+    authContact.focus();
+  }
+}
+
+function ensureRecaptchaVerifier() {
+  if (recaptchaVerifier || !recaptchaContainer) return recaptchaVerifier;
+  recaptchaVerifier = new window.firebase.auth.RecaptchaVerifier(recaptchaContainer, {
+    size: "invisible",
+    callback: () => {},
+  });
+  return recaptchaVerifier;
+}
+
+async function sendMobileOtp() {
   authSubmit.disabled = true;
   authSubmit.textContent = "Sending OTP...";
   pendingContact = authContact.value.trim();
-  pendingPhone = authMethod === "mobile" ? formatPhone(pendingContact) : "";
+  pendingPhone = formatPhone(pendingContact);
 
-  let error = null;
   try {
-    const response = authMethod === "email"
-      ? await supabaseClient.auth.signInWithOtp({
-          email: pendingContact,
-          options: { shouldCreateUser: true },
-        })
-      : await supabaseClient.auth.signInWithOtp({
-          phone: pendingPhone,
-          options: { shouldCreateUser: true },
-        });
-    error = response.error;
-  } catch (requestError) {
-    error = requestError;
-  }
-  authSubmit.disabled = false;
-
-  if (error) {
+    confirmationResult = await firebaseAuth.signInWithPhoneNumber(pendingPhone, ensureRecaptchaVerifier());
+    otpSent = true;
+    authOtp.closest(".auth-field").hidden = false;
+    otpSection.hidden = false;
+    otpSection.style.display = "";
+    authSubmit.textContent = "Verify and Sign In";
+    otpHint.textContent = "OTP has been sent to the entered mobile number.";
+    authOtp.focus();
+  } catch (error) {
+    console.error("Polisetty Firebase mobile OTP failed", error);
+    authContactError.textContent = firebaseErrorMessage(error);
     resetOtp();
-    authSubmit.textContent = "Send OTP";
-    authContactError.textContent =
-      error.message === "Failed to fetch"
-        ? "Unable to reach OTP service. Please use the live HTTPS website and check Supabase Auth settings."
-        : error.message || "Unable to send OTP. Please try again.";
+    authSubmit.disabled = false;
     authContact.focus();
+  }
+}
+
+async function issueOtp() {
+  if (!firebaseAuth) {
+    authContactError.textContent = "Firebase Authentication is not connected yet. Please add Firebase config in firebase-config.js.";
     return;
   }
 
-  otpSent = true;
-  otpSection.hidden = false;
-  otpSection.style.display = "";
-  authSubmit.textContent = "Verify and Sign In";
-  otpHint.textContent = authMethod === "email"
-    ? "OTP has been sent to the entered email address."
-    : "OTP has been sent to the entered mobile number.";
-  authOtp.focus();
+  if (authMethod === "email") {
+    await sendEmailLink();
+    return;
+  }
+
+  await sendMobileOtp();
 }
 
-function authorizeUser(session) {
+function authorizeUser(user) {
   localStorage.setItem(
     familyAuthKey,
     JSON.stringify({
       authorized: true,
       method: authMethod,
-      contact: pendingContact || authContact.value.trim(),
+      contact: user?.email || user?.phoneNumber || pendingContact || authContact.value.trim(),
       signedInAt: new Date().toISOString(),
-      userId: session?.user?.id || "",
+      userId: user?.uid || "",
     })
   );
   showProtectedSite();
 }
 
 async function verifyOtp() {
-  if (!supabaseClient) {
-    authOtpError.textContent = "OTP service is not connected yet.";
+  if (!firebaseAuth || !confirmationResult) {
+    authOtpError.textContent = "OTP verification is not ready. Please request OTP again.";
     return;
   }
 
@@ -255,31 +314,40 @@ async function verifyOtp() {
   authSubmit.disabled = true;
   authSubmit.textContent = "Verifying...";
 
-  const payload = authMethod === "email"
-    ? { email: pendingContact, token, type: "email" }
-    : { phone: pendingPhone, token, type: "sms" };
-  let data = null;
-  let error = null;
   try {
-    const response = await supabaseClient.auth.verifyOtp(payload);
-    data = response.data;
-    error = response.error;
-  } catch (requestError) {
-    error = requestError;
-  }
-  authSubmit.disabled = false;
-
-  if (error) {
+    const result = await confirmationResult.confirm(token);
+    authSubmit.disabled = false;
+    authorizeUser(result.user);
+  } catch (error) {
+    console.error("Polisetty Firebase OTP verification failed", error);
+    authSubmit.disabled = false;
     authSubmit.textContent = "Verify and Sign In";
-    authOtpError.textContent =
-      error.message === "Failed to fetch"
-        ? "Unable to reach OTP service. Please check your internet connection and try again."
-        : error.message || "Invalid OTP.";
+    authOtpError.textContent = firebaseErrorMessage(error);
     authOtp.focus();
-    return;
+  }
+}
+
+async function finishEmailLinkSignIn() {
+  if (!firebaseAuth || !firebaseAuth.isSignInWithEmailLink(window.location.href)) return false;
+
+  const email = localStorage.getItem(pendingEmailKey);
+  if (!email) {
+    showSignIn();
+    authContactError.textContent = "Please enter your email again to complete sign-in.";
+    return true;
   }
 
-  authorizeUser(data?.session);
+  try {
+    const result = await firebaseAuth.signInWithEmailLink(email, window.location.href);
+    localStorage.removeItem(pendingEmailKey);
+    window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
+    authorizeUser(result.user);
+  } catch (error) {
+    console.error("Polisetty Firebase email link verification failed", error);
+    showSignIn();
+    authContactError.textContent = firebaseErrorMessage(error);
+  }
+  return true;
 }
 
 async function handleAuthSubmit(event) {
@@ -302,19 +370,24 @@ async function handleAuthSubmit(event) {
 }
 
 async function initializeAuth() {
-  if (!supabaseClient) {
+  if (!firebaseAuth) {
     localStorage.removeItem(familyAuthKey);
     showSignIn();
+    authContactError.textContent = "Firebase Authentication is not connected yet. Please add your Firebase project settings.";
     return;
   }
 
-  const { data } = await supabaseClient.auth.getSession();
-  if (data?.session) {
-    authorizeUser(data.session);
-  } else {
-    localStorage.removeItem(familyAuthKey);
-    showSignIn();
-  }
+  const handledEmailLink = await finishEmailLinkSignIn();
+  if (handledEmailLink) return;
+
+  firebaseAuth.onAuthStateChanged((user) => {
+    if (user) {
+      authorizeUser(user);
+    } else {
+      localStorage.removeItem(familyAuthKey);
+      showSignIn();
+    }
+  });
 }
 
 if (authSection && authForm) {

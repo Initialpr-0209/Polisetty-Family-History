@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>POLISETTY FAMILY HISTORY</title>
-    <link rel="stylesheet" href="styles.css?v=20260714-email-only" />
+    <link rel="stylesheet" href="styles.css?v=20260717-firebase-auth" />
   </head>
   <body class="tree-locked auth-pending">
     <section class="site-auth" id="siteAuth" aria-labelledby="authTitle">
@@ -15,8 +15,9 @@
           Sign in securely to view and preserve our family history with care.
         </p>
 
-        <div class="auth-tabs auth-tabs-email-only" role="group" aria-label="Choose sign in method">
+        <div class="auth-tabs" role="group" aria-label="Choose sign in method">
           <button class="auth-method active" type="button" data-auth-method="email">Email</button>
+          <button class="auth-method" type="button" data-auth-method="mobile">Mobile</button>
         </div>
 
         <form class="auth-form" id="authForm" novalidate>
@@ -35,7 +36,8 @@
             <p class="auth-error" id="authOtpError" role="alert"></p>
           </div>
 
-          <button class="auth-submit" id="authSubmit" type="submit">Send OTP</button>
+          <button class="auth-submit" id="authSubmit" type="submit">Send Sign-In Link</button>
+          <div id="recaptchaContainer" class="recaptcha-container" aria-hidden="true"></div>
         </form>
       </div>
     </section>
@@ -212,10 +214,11 @@
       &copy; 2026 Polisetty Family History. All rights reserved. Shared with respect for our family legacy; please do not copy, alter, republish, or misuse this content without permission.
     </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-    <script src="supabase-config.js?v=20260714-email-only"></script>
-    <script src="auth.js?v=20260714-email-only"></script>
-    <script src="app.js?v=20260714-email-only"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+    <script src="firebase-config.js?v=20260717-firebase-auth"></script>
+    <script src="auth.js?v=20260717-firebase-auth"></script>
+    <script src="app.js?v=20260717-firebase-auth"></script>
   </body>
 </html>
 
