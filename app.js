@@ -1576,10 +1576,11 @@ let activeGeneration = "1";
 let treeScrollUnlocked = false;
 let treeScrollFrame = null;
 let generationScrollLocked = false;
+let accessCheckCounter = 0;
 const accessRequestAdminEmail = "vinnuharshu0399@gmail.com";
 const appFamilyAuthStorageKey = "polisettyFamilyAuth";
-const approvedAccessKey = "polisettyEditAccessApproved";
 const savedDetailKey = "polisettySavedPersonDetails";
+const approvedAccessCache = new Set();
 const editableDetailFields = [detailBirth, detailDeath, detailMarriage, detailRelation, detailPlace, detailOccupation, detailStudies];
 const dateDetailFields = [detailBirth, detailDeath, detailMarriage];
 const blockedMobileNumbers = new Set([
@@ -1725,9 +1726,12 @@ function saveDetails(details) {
   localStorage.setItem(savedDetailKey, JSON.stringify(details));
 }
 
-function hasApprovedEditAccess() {
-  const params = new URLSearchParams(window.location.search);
-  return params.get("access") === "approved" || localStorage.getItem(approvedAccessKey) === "true";
+function accessCacheKey(memberId = selectedId, contact = currentSignedInContact()) {
+  return `${String(contact || "").toLowerCase()}::${memberId}`;
+}
+
+function hasApprovedEditAccess(memberId = selectedId) {
+  return approvedAccessCache.has(accessCacheKey(memberId));
 }
 
 function setEditableDetails(isEditable) {
@@ -1784,16 +1788,27 @@ function isDateFieldValid(field) {
   return validCompactDate(value);
 }
 
-function resetUpdateRequestForm(member) {
+async function resetUpdateRequestForm(member) {
+  const checkId = ++accessCheckCounter;
   requestFormStatus.textContent = "";
   requestFormStatus.classList.remove("success", "error");
   requestAccessButton.classList.remove("attention");
-  if (hasApprovedEditAccess()) {
+  setEditableDetails(false);
+
+  if (hasApprovedEditAccess(member.id)) {
     setEditableDetails(true);
     requestFormStatus.textContent = "Access approved. You can edit the details now.";
     requestFormStatus.classList.add("success");
-  } else {
-    setEditableDetails(false);
+    return;
+  }
+
+  const approved = await checkApprovedAccess(member);
+  if (checkId !== accessCheckCounter || selectedId !== member.id) return;
+
+  if (approved) {
+    setEditableDetails(true);
+    requestFormStatus.textContent = "Access approved. You can edit the details now.";
+    requestFormStatus.classList.add("success");
   }
 }
 
@@ -1811,11 +1826,38 @@ function firestoreDb() {
   return window.firebase.firestore();
 }
 
+async function checkApprovedAccess(member) {
+  const contact = currentSignedInContact().toLowerCase();
+  if (!member?.id || !contact) return false;
+
+  try {
+    const db = firestoreDb();
+    if (!db) return false;
+    const snapshot = await db
+      .collection("accessRequests")
+      .where("userContact", "==", contact)
+      .where("memberId", "==", member.id)
+      .where("status", "==", "approved")
+      .limit(1)
+      .get();
+
+    if (!snapshot.empty) {
+      approvedAccessCache.add(accessCacheKey(member.id, contact));
+      return true;
+    }
+  } catch (error) {
+    console.error("Approved access check failed", error);
+  }
+
+  return false;
+}
+
 async function submitUpdateRequest() {
   const member = getMember(selectedId);
+  const successMessage = "The request access has been sent successfully. Please wait for the approval...";
   const requestPayload = {
     adminEmail: accessRequestAdminEmail,
-    userContact: currentSignedInContact(),
+    userContact: currentSignedInContact().toLowerCase(),
     memberId: member.id,
     memberName: member.name,
     generation: generationNames[member.generation],
@@ -1826,32 +1868,46 @@ async function submitUpdateRequest() {
   };
 
   requestAccessButton.disabled = true;
-  requestFormStatus.textContent = "Sending access request...";
+  requestFormStatus.textContent = successMessage;
   requestFormStatus.classList.remove("success", "error");
+  requestFormStatus.classList.add("success");
 
   try {
     const db = firestoreDb();
     if (!db) throw new Error("Firestore is not enabled yet.");
     await db.collection("accessRequests").add(requestPayload);
-    requestFormStatus.textContent = "The request access has been sent successfully. Please wait for the approval...";
+    requestFormStatus.textContent = successMessage;
     requestFormStatus.classList.add("success");
   } catch (error) {
     console.error("Access request could not be submitted", error, requestPayload);
-    requestFormStatus.textContent = "Access request could not be submitted. Please enable Firebase Firestore and try again.";
+    requestFormStatus.textContent = "Your request message is shown, but Firebase did not save it yet. Please check Firestore setup and try again.";
+    requestFormStatus.classList.remove("success");
     requestFormStatus.classList.add("error");
   } finally {
     requestAccessButton.disabled = false;
   }
 }
 
-function navigateToRequestAccess() {
-  if (hasApprovedEditAccess()) {
+async function navigateToRequestAccess() {
+  if (hasApprovedEditAccess(selectedId)) {
     setEditableDetails(true);
     detailBirth.focus();
     requestFormStatus.textContent = "Access approved. You can edit the details now.";
     requestFormStatus.classList.add("success");
     return;
   }
+
+  const member = getMember(selectedId);
+  requestFormStatus.textContent = "Checking approval status...";
+  requestFormStatus.classList.remove("success", "error");
+  if (await checkApprovedAccess(member)) {
+    setEditableDetails(true);
+    detailBirth.focus();
+    requestFormStatus.textContent = "Access approved. You can edit the details now.";
+    requestFormStatus.classList.add("success");
+    return;
+  }
+
   requestFormStatus.textContent = "";
   requestFormStatus.classList.remove("success", "error");
   requestAccessButton.scrollIntoView({ behavior: "smooth", block: "center" });
@@ -1861,6 +1917,13 @@ function navigateToRequestAccess() {
 }
 
 function saveCurrentDetails() {
+  if (!hasApprovedEditAccess(selectedId)) {
+    requestFormStatus.textContent = "Access is not approved yet.";
+    requestFormStatus.classList.remove("success");
+    requestFormStatus.classList.add("error");
+    return;
+  }
+
   const invalidDate = [detailBirth, detailDeath, detailMarriage].find((field) => !isDateFieldValid(field));
   if (invalidDate) {
     requestFormStatus.textContent = "Invalid format";
@@ -2340,7 +2403,7 @@ saveDetailButton.addEventListener("click", saveCurrentDetails);
 factCalendarInputs.forEach((calendar, index) => {
   const target = dateDetailFields[index];
   calendar.addEventListener("change", () => {
-    if (!hasApprovedEditAccess()) return;
+    if (!hasApprovedEditAccess(selectedId)) return;
     target.value = datePickerToCompact(calendar.value) || "N/A";
   });
 });
@@ -2348,7 +2411,7 @@ factCalendarInputs.forEach((calendar, index) => {
 calendarButtons.forEach((button, index) => {
   const calendar = factCalendarInputs[index];
   button.addEventListener("click", () => {
-    if (!hasApprovedEditAccess() || button.disabled) return;
+    if (!hasApprovedEditAccess(selectedId) || button.disabled) return;
     if (typeof calendar.showPicker === "function") {
       calendar.showPicker();
     } else {
@@ -2362,7 +2425,7 @@ dateNaButtons.forEach((button, index) => {
   const target = dateDetailFields[index];
   const calendar = factCalendarInputs[index];
   button.addEventListener("click", () => {
-    if (!hasApprovedEditAccess() || button.disabled) return;
+    if (!hasApprovedEditAccess(selectedId) || button.disabled) return;
     target.value = "N/A";
     calendar.value = "";
   });
@@ -2388,10 +2451,6 @@ topLink.addEventListener("click", (event) => {
 });
 
 const urlParams = new URLSearchParams(window.location.search);
-if (urlParams.get("access") === "approved") {
-  localStorage.setItem(approvedAccessKey, "true");
-}
-
 if (urlParams.get("return") === "tree") {
   resetToTreeView();
   requestAnimationFrame(resetToTreeView);

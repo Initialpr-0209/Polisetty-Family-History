@@ -7,6 +7,7 @@
   --gold: #b8873f;
   --leaf: #53744c;
   --maroon: #7b3e48;
+  --wine: #7b3e48;
   --blue: #2f6f82;
   --shadow: 0 22px 55px rgba(48, 38, 26, 0.14);
 }
@@ -1321,6 +1322,12 @@ body.auth-ready > .site-menu {
   width: 100%;
 }
 
+.request-access-button:disabled,
+.save-detail-button:disabled {
+  cursor: wait;
+  opacity: 0.76;
+}
+
 .save-detail-button {
   width: 100%;
   margin-top: 10px;
@@ -1654,23 +1661,28 @@ body.auth-ready > .site-menu {
   }
 
   .tree-panel {
-    grid-template-columns: 78px minmax(0, 1fr);
+    grid-template-columns: 104px minmax(0, 1fr);
   }
 
   .generation-labels span {
     padding: 8px;
-    font-size: 0.66rem;
+    color: #5f544a;
+    font-size: 0.72rem;
+    font-weight: 800;
     writing-mode: horizontal-tb;
     transform: none;
   }
 
   .generation-label-track span {
-    padding: 8px;
-    font-size: 0.66rem;
+    padding: 10px 8px;
+    font-size: 0.72rem;
+    line-height: 1.15;
   }
 
   .generation-label-track small {
-    font-size: 0.56rem;
+    color: #6b5f55;
+    font-size: 0.61rem;
+    font-weight: 800;
   }
 }
 
@@ -2145,6 +2157,7 @@ body.auth-ready > .site-menu {
   align-items: center;
   gap: 8px;
   padding: 8px 11px;
+  color: var(--ink);
   white-space: nowrap;
 }
 
@@ -2156,9 +2169,9 @@ body.auth-ready > .site-menu {
 }
 
 .branch-generation-nav button.active {
-  border-color: var(--wine);
+  border-color: var(--maroon);
   color: #fff;
-  background: var(--wine);
+  background: var(--maroon);
 }
 
 .branch-tree-shell {
@@ -2461,6 +2474,37 @@ body.auth-ready > .site-menu {
 
   .branch-tree-actions button {
     flex: 1 1 0;
+  }
+
+  .branch-generation-nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    overflow: visible;
+  }
+
+  .branch-generation-nav button {
+    width: 100%;
+    min-height: 40px;
+    justify-content: flex-start;
+    padding: 8px 9px;
+    color: var(--ink);
+    background: rgba(255, 255, 255, 0.95);
+    font-size: 0.76rem;
+    font-weight: 700;
+    line-height: 1.2;
+    white-space: normal;
+  }
+
+  .branch-generation-nav button span {
+    display: block;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .branch-generation-nav button.active {
+    color: #fff;
+    background: var(--maroon);
   }
 
   .branch-tree {
