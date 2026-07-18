@@ -19,6 +19,12 @@ const siteMenuPanel = document.querySelector("#siteMenuPanel");
 const siteInfoToast = document.querySelector("#siteInfoToast");
 const logoutButtons = document.querySelectorAll("[data-auth-logout]");
 const menuActionButtons = document.querySelectorAll("[data-menu-action]");
+const feedbackForm = document.querySelector("#feedbackForm");
+const feedbackStatus = document.querySelector("#feedbackStatus");
+const feedbackImprovements = document.querySelector("#feedbackImprovements");
+const feedbackSuggestions = document.querySelector("#feedbackSuggestions");
+const improvementCount = document.querySelector("#improvementCount");
+const suggestionCount = document.querySelector("#suggestionCount");
 const inactivityLimitMs = 10 * 60 * 1000;
 
 let inactivityTimer = 0;
@@ -37,6 +43,7 @@ const firebaseReady = Boolean(
 );
 
 const firebaseAuth = firebaseReady ? initializeFirebaseAuth() : null;
+const firebaseDb = firebaseReady && window.firebase.firestore ? window.firebase.firestore() : null;
 
 function initializeFirebaseAuth() {
   if (!window.firebase.apps.length) {
@@ -104,6 +111,85 @@ function showSiteToast(message) {
   toastTimer = window.setTimeout(() => {
     siteInfoToast.classList.remove("show");
   }, 4200);
+}
+
+function scrollToFeedback() {
+  const feedbackSection = document.querySelector("#feedback");
+  if (!feedbackSection) return;
+  feedbackSection.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function selectedRating(form, name) {
+  return form.querySelector(`input[name="${name}"]:checked`)?.value || "";
+}
+
+function updateTextCounter(field, output) {
+  if (!field || !output) return;
+  output.textContent = String(field.value.length);
+}
+
+function setFeedbackStatus(message, type = "") {
+  if (!feedbackStatus) return;
+  feedbackStatus.textContent = message;
+  feedbackStatus.classList.remove("success", "error");
+  if (type) feedbackStatus.classList.add(type);
+}
+
+function currentSignedInContact() {
+  try {
+    const cached = JSON.parse(localStorage.getItem(familyAuthKey) || "{}");
+    return cached.contact || firebaseAuth?.currentUser?.email || "";
+  } catch {
+    return firebaseAuth?.currentUser?.email || "";
+  }
+}
+
+async function submitFeedback(event) {
+  event.preventDefault();
+  if (!feedbackForm) return;
+
+  const interactive = selectedRating(feedbackForm, "interactive");
+  const understanding = selectedRating(feedbackForm, "understanding");
+  const experience = selectedRating(feedbackForm, "experience");
+
+  if (!interactive || !understanding || !experience) {
+    setFeedbackStatus("Please select star ratings for the first three questions.", "error");
+    return;
+  }
+
+  const submitButton = feedbackForm.querySelector(".feedback-submit");
+  const payload = {
+    interactiveRating: Number(interactive),
+    understandingRating: Number(understanding),
+    experienceRating: Number(experience),
+    improvements: feedbackImprovements?.value.trim() || "",
+    suggestions: feedbackSuggestions?.value.trim() || "",
+    copyRequested: Boolean(document.querySelector("#feedbackCopy")?.checked),
+    contact: currentSignedInContact(),
+    adminEmail: "vinnuharshu0399@gmail.com",
+    submittedAt: new Date().toISOString(),
+    pageUrl: window.location.href,
+    userAgent: navigator.userAgent,
+  };
+
+  submitButton.disabled = true;
+  setFeedbackStatus("Submitting feedback...");
+
+  try {
+    if (!firebaseDb) {
+      throw new Error("Firestore is not enabled yet.");
+    }
+    await firebaseDb.collection("feedbackResponses").add(payload);
+    feedbackForm.reset();
+    updateTextCounter(feedbackImprovements, improvementCount);
+    updateTextCounter(feedbackSuggestions, suggestionCount);
+    setFeedbackStatus("Thank you. Your feedback has been submitted successfully.", "success");
+  } catch (error) {
+    console.error("Polisetty feedback submission failed", error);
+    setFeedbackStatus("Feedback could not be submitted. Please enable Firebase Firestore and try again.", "error");
+  } finally {
+    submitButton.disabled = false;
+  }
 }
 
 function resetAuthForm() {
@@ -322,9 +408,17 @@ if (authSection && authForm) {
       if (button.dataset.menuAction === "about") {
         showSiteToast("Polisetty Family History is a private family space created to preserve names, relationships, memories, and legacy across generations.");
       }
+      if (button.dataset.menuAction === "feedback") {
+        scrollToFeedback();
+      }
       closeSiteMenu();
     });
   });
+  feedbackImprovements?.addEventListener("input", () => updateTextCounter(feedbackImprovements, improvementCount));
+  feedbackSuggestions?.addEventListener("input", () => updateTextCounter(feedbackSuggestions, suggestionCount));
+  feedbackForm?.addEventListener("submit", submitFeedback);
+  updateTextCounter(feedbackImprovements, improvementCount);
+  updateTextCounter(feedbackSuggestions, suggestionCount);
   ["click", "keydown", "mousemove", "scroll", "touchstart"].forEach((eventName) => {
     window.addEventListener(eventName, recordActivity, { passive: true });
   });

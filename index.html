@@ -6,7 +6,7 @@
     <title>POLISETTY FAMILY HISTORY</title>
     <link rel="icon" type="image/svg+xml" href="polisetty-favicon.svg?v=20260717-bright-icon" />
     <link rel="apple-touch-icon" href="polisetty-family-logo-clean-transparent.png?v=20260717-logo-fix" />
-    <link rel="stylesheet" href="styles.css?v=20260718-default-view-scale" />
+    <link rel="stylesheet" href="styles.css?v=20260718-feedback-form" />
   </head>
   <body class="tree-locked auth-pending">
     <section class="site-auth" id="siteAuth" aria-labelledby="authTitle">
@@ -63,7 +63,7 @@
       <div class="site-menu-panel" id="siteMenuPanel" hidden>
         <a href="index.html#home">Home</a>
         <button type="button" data-menu-action="about">About Us</button>
-        <a href="mailto:vinnuharshu0399@gmail.com?subject=Polisetty%20Family%20History%20Feedback">Feedback</a>
+        <button type="button" data-menu-action="feedback">Feedback</button>
         <button type="button" data-auth-logout>Log out</button>
       </div>
     </nav>
@@ -220,6 +220,89 @@
         </div>
 
       </section>
+
+      <section class="feedback-page" id="feedback" aria-labelledby="feedbackTitle">
+        <div class="feedback-card">
+          <p class="feedback-eyebrow">Family Voice</p>
+          <h2 id="feedbackTitle">Share Your Feedback</h2>
+          <p class="feedback-copy">
+            Your thoughts help us make this family legacy easier to understand, warmer to use, and more meaningful for every generation.
+          </p>
+
+          <form class="feedback-form" id="feedbackForm" novalidate>
+            <fieldset class="rating-field">
+              <legend>Did you feel the family legacy interactive?</legend>
+              <div class="star-rating" role="radiogroup" aria-label="Did you feel the family legacy interactive?">
+                <input type="radio" id="interactive5" name="interactive" value="5" required />
+                <label for="interactive5" title="Excellent">★</label>
+                <input type="radio" id="interactive4" name="interactive" value="4" />
+                <label for="interactive4" title="Very good">★</label>
+                <input type="radio" id="interactive3" name="interactive" value="3" />
+                <label for="interactive3" title="Good">★</label>
+                <input type="radio" id="interactive2" name="interactive" value="2" />
+                <label for="interactive2" title="Needs improvement">★</label>
+                <input type="radio" id="interactive1" name="interactive" value="1" />
+                <label for="interactive1" title="No improvement">★</label>
+              </div>
+              <small>1 means needs improvement, 5 means excellent.</small>
+            </fieldset>
+
+            <fieldset class="rating-field">
+              <legend>How far did the family legacy reach your understanding?</legend>
+              <div class="star-rating" role="radiogroup" aria-label="How far did the family legacy reach your understanding?">
+                <input type="radio" id="understanding5" name="understanding" value="5" required />
+                <label for="understanding5" title="Excellent">★</label>
+                <input type="radio" id="understanding4" name="understanding" value="4" />
+                <label for="understanding4" title="Very good">★</label>
+                <input type="radio" id="understanding3" name="understanding" value="3" />
+                <label for="understanding3" title="Good">★</label>
+                <input type="radio" id="understanding2" name="understanding" value="2" />
+                <label for="understanding2" title="Needs improvement">★</label>
+                <input type="radio" id="understanding1" name="understanding" value="1" />
+                <label for="understanding1" title="No improvement">★</label>
+              </div>
+              <small>1 means needs improvement, 5 means excellent.</small>
+            </fieldset>
+
+            <fieldset class="rating-field">
+              <legend>Overall experience?</legend>
+              <div class="star-rating" role="radiogroup" aria-label="Overall experience?">
+                <input type="radio" id="experience5" name="experience" value="5" required />
+                <label for="experience5" title="Excellent">★</label>
+                <input type="radio" id="experience4" name="experience" value="4" />
+                <label for="experience4" title="Very good">★</label>
+                <input type="radio" id="experience3" name="experience" value="3" />
+                <label for="experience3" title="Good">★</label>
+                <input type="radio" id="experience2" name="experience" value="2" />
+                <label for="experience2" title="Needs improvement">★</label>
+                <input type="radio" id="experience1" name="experience" value="1" />
+                <label for="experience1" title="No improvement">★</label>
+              </div>
+              <small>1 means needs improvement, 5 means excellent.</small>
+            </fieldset>
+
+            <label class="feedback-field">
+              <span>Areas of improvement required?</span>
+              <textarea id="feedbackImprovements" name="improvements" maxlength="1000" rows="5" placeholder="Write up to 1000 characters"></textarea>
+              <small><output id="improvementCount">0</output>/1000</small>
+            </label>
+
+            <label class="feedback-field">
+              <span>Suggestions</span>
+              <textarea id="feedbackSuggestions" name="suggestions" maxlength="1000" rows="5" placeholder="Write up to 1000 characters"></textarea>
+              <small><output id="suggestionCount">0</output>/1000</small>
+            </label>
+
+            <label class="feedback-copy-check">
+              <input id="feedbackCopy" name="copyRequested" type="checkbox" />
+              <span>Send me a copy of my submitted response when admin reviews it.</span>
+            </label>
+
+            <button class="feedback-submit" type="submit">Submit Feedback</button>
+            <p class="feedback-status" id="feedbackStatus" role="status"></p>
+          </form>
+        </div>
+      </section>
     </main>
     <a class="top-link" href="#home" aria-label="Back to top">&uarr;</a>
     <footer class="site-copyright">
@@ -228,8 +311,9 @@
 
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
     <script src="firebase-config.js?v=20260717-layout-fix"></script>
-    <script src="auth.js?v=20260717-layout-fix"></script>
+    <script src="auth.js?v=20260718-feedback-form"></script>
     <script src="app.js?v=20260718-default-view-scale"></script>
   </body>
 </html>
