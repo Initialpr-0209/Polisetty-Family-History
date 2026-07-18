@@ -95,6 +95,26 @@ body.auth-ready > .site-menu {
   box-shadow: var(--shadow);
 }
 
+
+.auth-logo-preview {
+  display: grid;
+  place-items: center;
+  width: min(178px, 54vw);
+  margin: 0 auto 16px;
+  padding: 8px;
+  border: 1px solid rgba(220, 207, 190, 0.9);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 14px 34px rgba(48, 38, 26, 0.12);
+}
+
+.auth-logo-preview img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 132px;
+  object-fit: contain;
+}
 .auth-eyebrow {
   margin: 0 0 8px;
   color: var(--maroon);
@@ -271,66 +291,6 @@ body.auth-ready > .site-menu {
   display: flex;
   align-items: center;
   gap: 8px;
-}
-
-.site-logo-preview {
-  display: grid;
-  width: 40px;
-  height: 40px;
-  place-items: center;
-  padding: 0;
-  border: 1px solid rgba(220, 207, 190, 0.86);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.94);
-  box-shadow: 0 10px 24px rgba(48, 38, 26, 0.14);
-  cursor: pointer;
-}
-
-.site-logo-preview img {
-  width: 28px;
-  height: 28px;
-  display: block;
-}
-
-.site-logo-card {
-  position: absolute;
-  top: calc(100% + 10px);
-  right: 48px;
-  width: 210px;
-  padding: 10px;
-  border: 1px solid rgba(220, 207, 190, 0.9);
-  border-radius: 12px;
-  color: var(--ink);
-  background: rgba(255, 255, 255, 0.98);
-  box-shadow: 0 18px 45px rgba(48, 38, 26, 0.2);
-  text-align: center;
-  opacity: 0;
-  pointer-events: none;
-  transform: translateY(-6px);
-  transition: opacity 160ms ease, transform 160ms ease;
-}
-
-.site-logo-card img {
-  width: 100%;
-  max-height: 150px;
-  object-fit: contain;
-  display: block;
-}
-
-.site-logo-card strong {
-  display: block;
-  margin-top: 6px;
-  color: var(--maroon);
-  font-family: Georgia, "Times New Roman", serif;
-  font-size: 1rem;
-}
-
-.site-logo-preview:hover + .site-logo-card,
-.site-logo-preview:focus-visible + .site-logo-card,
-.site-logo-card:hover {
-  opacity: 1;
-  pointer-events: auto;
-  transform: translateY(0);
 }
 
 .site-menu-toggle {
@@ -1642,7 +1602,7 @@ body.auth-ready > .site-menu {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 10px;
-  padding: 10px 118px 10px 12px;
+  padding: 10px 70px 10px 12px;
   border-bottom: 1px solid var(--line);
   background: rgba(248, 244, 238, 0.92);
 }
@@ -2404,6 +2364,7 @@ body.auth-ready > .site-menu {
     grid-template-columns: 22px minmax(92px, 1fr) 26px 38px;
   }
 }
+
 
 
 
