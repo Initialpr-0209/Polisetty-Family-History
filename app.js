@@ -18,7 +18,7 @@ const generationColors = {
   7: "#9a5a32",
 };
 
-const generationOffsets = [0, 176, 352, 528, 704, 1004, 1266];
+const generationOffsets = [0, 170, 344, 535, 780, 1030, 1230];
 
 const members = [
   {

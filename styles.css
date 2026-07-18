@@ -769,7 +769,7 @@ body.auth-ready > .site-menu {
 
 .generation-label-track {
   display: grid;
-  grid-template-rows: repeat(4, 176px) 300px 262px 176px;
+  grid-template-rows: 170px 174px 191px 245px 250px 200px 220px;
   height: 1450px;
   transition: transform 180ms ease;
   will-change: transform;
@@ -815,18 +815,18 @@ body.auth-ready > .site-menu {
     linear-gradient(
       to bottom,
       rgba(83, 116, 76, 0.055) 0,
-      rgba(83, 116, 76, 0.055) 176px,
-      rgba(184, 135, 63, 0.055) 176px,
-      rgba(184, 135, 63, 0.055) 352px,
-      rgba(47, 111, 130, 0.055) 352px,
-      rgba(47, 111, 130, 0.055) 528px,
-      rgba(123, 62, 72, 0.055) 528px,
-      rgba(123, 62, 72, 0.055) 704px,
-      rgba(93, 91, 141, 0.055) 704px,
-      rgba(93, 91, 141, 0.055) 1004px,
-      rgba(65, 106, 139, 0.055) 1004px,
-      rgba(65, 106, 139, 0.055) 1266px,
-      rgba(154, 90, 50, 0.055) 1266px,
+      rgba(83, 116, 76, 0.055) 170px,
+      rgba(184, 135, 63, 0.055) 170px,
+      rgba(184, 135, 63, 0.055) 344px,
+      rgba(47, 111, 130, 0.055) 344px,
+      rgba(47, 111, 130, 0.055) 535px,
+      rgba(123, 62, 72, 0.055) 535px,
+      rgba(123, 62, 72, 0.055) 780px,
+      rgba(93, 91, 141, 0.055) 780px,
+      rgba(93, 91, 141, 0.055) 1030px,
+      rgba(65, 106, 139, 0.055) 1030px,
+      rgba(65, 106, 139, 0.055) 1230px,
+      rgba(154, 90, 50, 0.055) 1230px,
       rgba(154, 90, 50, 0.055) 1442px
     );
 }
