@@ -479,6 +479,7 @@ const members = [
     color: "#7b3e48",
     parents: ["poli-sravanthi", "poli-arjun"],
     spouse: "poli-krishnaveni",
+    photo: "photos/polisetty-venkata-ramakrishna-rao.png",
     bio: "Polisetty Venkata RamaKrishna Rao, people also call him as Krishna.",
     notes: ["Spouse: Polisetty KrishnaVeni", "7th Child for the 2nd grandchildren branch"],
   },
@@ -496,6 +497,7 @@ const members = [
     color: "#7b3e48",
     parents: [],
     spouse: "poli-venkata-ramakrishna-rao",
+    photo: "photos/polisetty-krishnaveni.jpg",
     bio: "Polisetty KrishnaVeni, the 2nd Daughter of Vetcha Sarojini(Late) and Vetcha Trinadha (Late).",
     notes: ["Spouse: Polisetty Venkata RamaKrishna Rao", "4th Daughter-In-Law for 2nd Grandchildren"],
   },
@@ -1569,7 +1571,6 @@ const requestFormStatus = document.querySelector("#requestFormStatus");
 const saveDetailButton = document.querySelector("#saveDetailButton");
 const factCalendarInputs = document.querySelectorAll(".facts-calendar");
 const calendarButtons = document.querySelectorAll(".facts-calendar-button");
-const dateNaButtons = document.querySelectorAll(".date-na-button");
 
 let selectedId = members[0].id;
 let activeGeneration = "1";
@@ -1682,26 +1683,64 @@ function setSearchValidation() {
 function datePickerToCompact(value) {
   if (!value) return "";
   const [year, month, day] = value.split("-");
-  return `${day}${month}${year}`;
+  return `${day}/${month}/${year}`;
 }
 
 function compactToDatePicker(value) {
-  if (!/^\d{8}$/.test(value)) return "";
-  return `${value.slice(4)}-${value.slice(2, 4)}-${value.slice(0, 2)}`;
+  const normalized = normalizeDateDisplay(value);
+  const match = normalized.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!match) return "";
+  return `${match[3]}-${match[2]}-${match[1]}`;
 }
 
 function validCompactDate(value) {
-  if (!value) return true;
-  if (!/^\d{8}$/.test(value)) return false;
-  const day = Number(value.slice(0, 2));
-  const month = Number(value.slice(2, 4));
-  const year = Number(value.slice(4));
+  if (!value) return false;
+  if (value.toUpperCase() === "N/A") return true;
+  const normalized = normalizeDateDisplay(value);
+  const match = normalized.match(/^(\d{2})\/(\d{2})\/(\d{4})$/);
+  if (!match) return false;
+  const day = Number(match[1]);
+  const month = Number(match[2]);
+  const year = Number(match[3]);
   const date = new Date(year, month - 1, day);
   return date.getFullYear() === year && date.getMonth() === month - 1 && date.getDate() === day;
 }
 
+function normalizeDateDisplay(value) {
+  const trimmed = String(value || "").trim();
+  if (!trimmed || trimmed.toUpperCase() === "N/A") return "";
+
+  const slashMatch = trimmed.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (slashMatch) {
+    return `${slashMatch[1].padStart(2, "0")}/${slashMatch[2].padStart(2, "0")}/${slashMatch[3]}`;
+  }
+
+  const compactMatch = trimmed.match(/^(\d{2})(\d{2})(\d{4})$/);
+  if (compactMatch) {
+    return `${compactMatch[1]}/${compactMatch[2]}/${compactMatch[3]}`;
+  }
+
+  const textMatch = trimmed.match(/^(\d{1,2})(?:st|nd|rd|th)?\s+([a-zA-Z]+),?\s*(\d{4})$/);
+  if (textMatch) {
+    const months = {
+      january: "01", february: "02", march: "03", april: "04", may: "05", june: "06",
+      july: "07", august: "08", september: "09", october: "10", november: "11", december: "12",
+      jan: "01", feb: "02", mar: "03", apr: "04", jun: "06", jul: "07", aug: "08",
+      sep: "09", sept: "09", oct: "10", nov: "11", dec: "12",
+    };
+    const month = months[textMatch[2].toLowerCase()];
+    if (month) return `${textMatch[1].padStart(2, "0")}/${month}/${textMatch[3]}`;
+  }
+
+  return trimmed;
+}
+
 function valueOrNA(value) {
   return value?.trim() || "N/A";
+}
+
+function valueOrBlank(value) {
+  return value?.trim() || "";
 }
 
 function isValidMobile(value) {
@@ -1745,16 +1784,13 @@ function setEditableDetails(isEditable) {
   calendarButtons.forEach((button) => {
     button.disabled = !isEditable;
   });
-  dateNaButtons.forEach((button) => {
-    button.disabled = !isEditable;
-  });
   saveDetailButton.hidden = !isEditable;
   requestAccessButton.hidden = isEditable;
 }
 
 function dateDetailValue(overrides, key, fallback) {
-  if (Object.prototype.hasOwnProperty.call(overrides, key)) return overrides[key];
-  return fallback && fallback.toUpperCase() !== "N/A" ? fallback : "";
+  if (Object.prototype.hasOwnProperty.call(overrides, key)) return normalizeDateDisplay(overrides[key]);
+  return fallback && fallback.toUpperCase() !== "N/A" ? normalizeDateDisplay(fallback) : "";
 }
 
 function detailsForMember(member) {
@@ -1771,8 +1807,10 @@ function detailsForMember(member) {
 }
 
 function setOriginalValue(field, value) {
-  field.value = value;
-  field.dataset.originalValue = value;
+  const displayValue = field.matches("#detailBirth, #detailDeath, #detailMarriage") ? normalizeDateDisplay(value) : value;
+  field.value = displayValue;
+  field.dataset.originalValue = displayValue;
+  field.classList.remove("invalid");
 }
 
 function syncCalendarValues() {
@@ -1783,8 +1821,8 @@ function syncCalendarValues() {
 
 function isDateFieldValid(field) {
   const value = field.value.trim();
-  if (!value || value.toUpperCase() === "N/A") return true;
-  if (value === field.dataset.originalValue) return true;
+  if (!value) return false;
+  if (value.toUpperCase() === "N/A") return true;
   return validCompactDate(value);
 }
 
@@ -1924,8 +1962,20 @@ function saveCurrentDetails() {
     return;
   }
 
-  const invalidDate = [detailBirth, detailDeath, detailMarriage].find((field) => !isDateFieldValid(field));
+  dateDetailFields.forEach((field) => field.classList.remove("invalid"));
+  const missingDate = dateDetailFields.find((field) => !field.value.trim());
+  if (missingDate) {
+    missingDate.classList.add("invalid");
+    requestFormStatus.textContent = "* to be filled";
+    requestFormStatus.classList.remove("success");
+    requestFormStatus.classList.add("error");
+    missingDate.focus();
+    return;
+  }
+
+  const invalidDate = dateDetailFields.find((field) => !isDateFieldValid(field));
   if (invalidDate) {
+    invalidDate.classList.add("invalid");
     requestFormStatus.textContent = "Invalid format";
     requestFormStatus.classList.remove("success");
     requestFormStatus.classList.add("error");
@@ -1935,9 +1985,9 @@ function saveCurrentDetails() {
 
   const details = savedDetails();
   details[selectedId] = {
-    birth: valueOrNA(detailBirth.value),
-    death: valueOrNA(detailDeath.value),
-    marriage: valueOrNA(detailMarriage.value),
+    birth: valueOrBlank(normalizeDateDisplay(detailBirth.value)),
+    death: valueOrBlank(normalizeDateDisplay(detailDeath.value)),
+    marriage: valueOrBlank(normalizeDateDisplay(detailMarriage.value)),
     relation: valueOrNA(detailRelation.value),
     place: valueOrNA(detailPlace.value),
     occupation: valueOrNA(detailOccupation.value),
@@ -2195,7 +2245,18 @@ function showDetails(id) {
   const details = detailsForMember(member);
 
   detailPortrait.style.setProperty("--portrait-color", generationColors[member.generation]);
-  detailPortrait.textContent = initials(member.name);
+  detailPortrait.innerHTML = "";
+  if (member.photo) {
+    const photo = document.createElement("img");
+    photo.src = member.photo;
+    photo.alt = `${member.name} photo`;
+    photo.loading = "lazy";
+    detailPortrait.appendChild(photo);
+    detailPortrait.classList.add("has-photo");
+  } else {
+    detailPortrait.textContent = initials(member.name);
+    detailPortrait.classList.remove("has-photo");
+  }
   detailGeneration.textContent = displayGeneration(member);
   detailName.textContent = member.name;
   detailLife.textContent = details.birth;
@@ -2404,7 +2465,26 @@ factCalendarInputs.forEach((calendar, index) => {
   const target = dateDetailFields[index];
   calendar.addEventListener("change", () => {
     if (!hasApprovedEditAccess(selectedId)) return;
-    target.value = datePickerToCompact(calendar.value) || "N/A";
+    target.value = datePickerToCompact(calendar.value);
+    target.classList.remove("invalid");
+  });
+});
+
+dateDetailFields.forEach((field) => {
+  field.addEventListener("input", () => {
+    field.classList.remove("invalid");
+    requestFormStatus.classList.remove("error");
+    if (requestFormStatus.textContent === "* to be filled" || requestFormStatus.textContent === "Invalid format") {
+      requestFormStatus.textContent = "";
+    }
+  });
+  field.addEventListener("blur", () => {
+    if (!hasApprovedEditAccess(selectedId)) return;
+    const value = field.value.trim();
+    if (!value || value.toUpperCase() === "N/A") return;
+    field.value = normalizeDateDisplay(value);
+    const calendar = factCalendarInputs[dateDetailFields.indexOf(field)];
+    if (calendar) calendar.value = compactToDatePicker(field.value);
   });
 });
 
@@ -2418,16 +2498,6 @@ calendarButtons.forEach((button, index) => {
       calendar.focus();
       calendar.click();
     }
-  });
-});
-
-dateNaButtons.forEach((button, index) => {
-  const target = dateDetailFields[index];
-  const calendar = factCalendarInputs[index];
-  button.addEventListener("click", () => {
-    if (!hasApprovedEditAccess(selectedId) || button.disabled) return;
-    target.value = "N/A";
-    calendar.value = "";
   });
 });
 

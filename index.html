@@ -6,7 +6,7 @@
     <title>POLISETTY FAMILY HISTORY</title>
     <link rel="icon" type="image/svg+xml" href="polisetty-favicon.svg?v=20260717-bright-icon" />
     <link rel="apple-touch-icon" href="polisetty-family-logo-clean-transparent.png?v=20260717-logo-fix" />
-    <link rel="stylesheet" href="styles.css?v=20260718-mobile-labels" />
+    <link rel="stylesheet" href="styles.css?v=20260718-member-photos" />
   </head>
   <body class="tree-locked auth-pending">
     <section class="site-auth" id="siteAuth" aria-labelledby="authTitle">
@@ -152,8 +152,7 @@
               <div>
                 <dt>Date of Birth</dt>
                 <dd class="facts-date">
-                  <input id="detailBirth" type="text" placeholder="DDMMYYYY" readonly />
-                  <button class="date-na-button" type="button" aria-label="Set date of birth as not available" disabled>N/A</button>
+                  <input id="detailBirth" type="text" placeholder="*" readonly />
                   <button class="facts-calendar-button" type="button" aria-label="Choose date of birth" disabled></button>
                   <input class="facts-calendar" type="date" aria-label="Date of birth calendar" disabled />
                 </dd>
@@ -161,8 +160,7 @@
               <div>
                 <dt>Date of Death</dt>
                 <dd class="facts-date">
-                  <input id="detailDeath" type="text" placeholder="DDMMYYYY" readonly />
-                  <button class="date-na-button" type="button" aria-label="Set date of death as not available" disabled>N/A</button>
+                  <input id="detailDeath" type="text" placeholder="*" readonly />
                   <button class="facts-calendar-button" type="button" aria-label="Choose date of death" disabled></button>
                   <input class="facts-calendar" type="date" aria-label="Date of death calendar" disabled />
                 </dd>
@@ -170,8 +168,7 @@
               <div>
                 <dt>Date of Marriage</dt>
                 <dd class="facts-date">
-                  <input id="detailMarriage" type="text" placeholder="DDMMYYYY" readonly />
-                  <button class="date-na-button" type="button" aria-label="Set date of marriage as not available" disabled>N/A</button>
+                  <input id="detailMarriage" type="text" placeholder="*" readonly />
                   <button class="facts-calendar-button" type="button" aria-label="Choose date of marriage" disabled></button>
                   <input class="facts-calendar" type="date" aria-label="Date of marriage calendar" disabled />
                 </dd>
@@ -315,7 +312,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-firestore-compat.js"></script>
     <script src="firebase-config.js?v=20260717-layout-fix"></script>
     <script src="auth.js?v=20260718-email-suggestions"></script>
-    <script src="app.js?v=20260718-admin-approval"></script>
+    <script src="app.js?v=20260718-member-photos"></script>
   </body>
 </html>
 
