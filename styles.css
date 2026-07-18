@@ -507,16 +507,16 @@ body.auth-ready > .site-menu {
 }
 
 .tree-page {
-  width: min(1800px, 100%);
+  width: min(1920px, 100%);
   margin: 0 auto;
-  padding: 16px;
+  padding: 14px 20px;
 }
 
 .tree-header {
   display: grid;
   grid-template-columns: 1fr;
   align-items: center;
-  padding: 12px 0 18px;
+  padding: 8px 0 14px;
 }
 
 .tree-header h2,
@@ -577,7 +577,7 @@ body.auth-ready > .site-menu {
 
 .tree-title strong {
   color: var(--ink);
-  font-size: clamp(2rem, 3.5vw, 3.55rem);
+  font-size: clamp(1.9rem, 3.15vw, 3.15rem);
   font-weight: 900;
   letter-spacing: 0;
   line-height: 0.9;
@@ -611,11 +611,12 @@ body.auth-ready > .site-menu {
 
 .generation-tabs {
   display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
+  flex-wrap: nowrap;
+  gap: 6px;
   align-items: stretch;
-  overflow-x: visible;
-  padding: 0 0 12px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  padding: 0 0 10px;
 }
 
 .generation-tabs .tab-button[data-generation="all"] {
@@ -712,24 +713,21 @@ body.auth-ready > .site-menu {
 
 .tab-button {
   flex: 0 1 auto;
-  min-height: 42px;
+  min-height: 36px;
   max-width: 100%;
-  padding: 0 15px;
+  padding: 0 11px;
   border-radius: 8px;
   color: var(--ink);
   background: #eee5da;
+  font-size: clamp(0.78rem, 0.86vw, 0.92rem);
   font-weight: 800;
   line-height: 1.2;
-  white-space: normal;
+  white-space: nowrap;
 }
 
 @media (max-width: 1500px) {
   .generation-tabs {
     row-gap: 10px;
-  }
-
-  .generation-tabs .tab-button[data-generation="all"] {
-    margin-left: 0;
   }
 }
 
