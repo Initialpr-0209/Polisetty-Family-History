@@ -99,20 +99,19 @@ body.auth-ready > .site-menu {
 .auth-logo-preview {
   display: grid;
   place-items: center;
-  width: min(178px, 54vw);
-  margin: 0 auto 16px;
-  padding: 8px;
-  border: 1px solid rgba(220, 207, 190, 0.9);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.82);
-  box-shadow: 0 14px 34px rgba(48, 38, 26, 0.12);
+  width: min(190px, 58vw);
+  margin: 0 auto 18px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .auth-logo-preview img {
   display: block;
   width: 100%;
   height: auto;
-  max-height: 132px;
+  max-height: 148px;
   object-fit: contain;
 }
 .auth-eyebrow {
@@ -2364,6 +2363,7 @@ body.auth-ready > .site-menu {
     grid-template-columns: 22px minmax(92px, 1fr) 26px 38px;
   }
 }
+
 
 
 
