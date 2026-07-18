@@ -979,6 +979,7 @@ const members = [
     color: "#5d5b8d",
     parents: ["vetcha-sarojini", "vetcha-trinadha"],
     spouse: "poli-vrk-rao-soninlaw",
+    photo: "photos/polisetty-krishnaveni.jpg",
     bio: "Polisetty Krishnaveni is the 3rd child to the 2nd daughter of Great Grandchildren, Sarojini & Trinadha.",
     notes: ["Spouse: Polisetty Venkata Ramakrishna Rao", "3rd Child to 2nd daughter of great grand children, Sarojini & Trinadha", "Marriage Date: 24th May, 1996", "Polisetty Krishnaveni's maternal uncle is Polisetty Venkata Ramakrishna Rao."],
   },
@@ -997,6 +998,7 @@ const members = [
     color: "#5d5b8d",
     parents: [],
     spouse: "poli-krishnaveni-sarojini-child",
+    photo: "photos/polisetty-venkata-ramakrishna-rao.png",
     bio: "Polisetty Venkata Ramakrishna Rao is the own younger brother to Sarojini and also the 2nd Son-in-law.",
     notes: ["Spouse: Polisetty Krishnaveni", "2nd Son-In-Law for 2nd daughter of great grand children", "Marriage Date: 24th May, 1996"],
   },
@@ -1563,6 +1565,8 @@ const detailLinks = document.querySelector("#detailLinks");
 const detailNotes = document.querySelector("#detailNotes");
 const detailModal = document.querySelector("#detailModal");
 const closeModal = document.querySelector("#closeModal");
+const photoUploadControl = document.querySelector("#photoUploadControl");
+const photoUploadInput = document.querySelector("#photoUploadInput");
 const viewTreeLink = document.querySelector("#viewTreeLink");
 const topLink = document.querySelector(".top-link");
 const requestAccessButton = document.querySelector("#requestAccessButton");
@@ -1581,6 +1585,7 @@ let accessCheckCounter = 0;
 const accessRequestAdminEmail = "vinnuharshu0399@gmail.com";
 const appFamilyAuthStorageKey = "polisettyFamilyAuth";
 const savedDetailKey = "polisettySavedPersonDetails";
+const savedPhotoKey = "polisettySavedPersonPhotos";
 const approvedAccessCache = new Set();
 const editableDetailFields = [detailBirth, detailDeath, detailMarriage, detailRelation, detailPlace, detailOccupation, detailStudies];
 const dateDetailFields = [detailBirth, detailDeath, detailMarriage];
@@ -1765,6 +1770,22 @@ function saveDetails(details) {
   localStorage.setItem(savedDetailKey, JSON.stringify(details));
 }
 
+function savedPhotos() {
+  try {
+    return JSON.parse(localStorage.getItem(savedPhotoKey)) || {};
+  } catch (error) {
+    return {};
+  }
+}
+
+function savePhotos(photos) {
+  localStorage.setItem(savedPhotoKey, JSON.stringify(photos));
+}
+
+function photoForMember(member) {
+  return savedPhotos()[member.id] || member.photo || "";
+}
+
 function accessCacheKey(memberId = selectedId, contact = currentSignedInContact()) {
   return `${String(contact || "").toLowerCase()}::${memberId}`;
 }
@@ -1786,6 +1807,7 @@ function setEditableDetails(isEditable) {
   });
   saveDetailButton.hidden = !isEditable;
   requestAccessButton.hidden = isEditable;
+  if (photoUploadControl) photoUploadControl.hidden = !isEditable;
 }
 
 function dateDetailValue(overrides, key, fallback) {
@@ -1997,6 +2019,68 @@ function saveCurrentDetails() {
   requestFormStatus.textContent = "Changes saved successfully.";
   requestFormStatus.classList.remove("error");
   requestFormStatus.classList.add("success");
+}
+
+function resizeImageFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.addEventListener("error", () => reject(new Error("Unable to read selected photo.")));
+    reader.addEventListener("load", () => {
+      const image = new Image();
+      image.addEventListener("error", () => reject(new Error("Unable to load selected photo.")));
+      image.addEventListener("load", () => {
+        const maxSide = 900;
+        const scale = Math.min(1, maxSide / Math.max(image.width, image.height));
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.max(1, Math.round(image.width * scale));
+        canvas.height = Math.max(1, Math.round(image.height * scale));
+        const context = canvas.getContext("2d");
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL("image/jpeg", 0.84));
+      });
+      image.src = reader.result;
+    });
+    reader.readAsDataURL(file);
+  });
+}
+
+async function uploadCurrentPhoto(event) {
+  if (!hasApprovedEditAccess(selectedId)) {
+    requestFormStatus.textContent = "Access is not approved yet.";
+    requestFormStatus.classList.remove("success");
+    requestFormStatus.classList.add("error");
+    event.target.value = "";
+    return;
+  }
+
+  const file = event.target.files?.[0];
+  if (!file) return;
+  if (!file.type.startsWith("image/")) {
+    requestFormStatus.textContent = "Please choose a valid image file.";
+    requestFormStatus.classList.remove("success");
+    requestFormStatus.classList.add("error");
+    event.target.value = "";
+    return;
+  }
+
+  try {
+    requestFormStatus.textContent = "Uploading photo...";
+    requestFormStatus.classList.remove("success", "error");
+    const dataUrl = await resizeImageFile(file);
+    const photos = savedPhotos();
+    photos[selectedId] = dataUrl;
+    savePhotos(photos);
+    showDetails(selectedId);
+    requestFormStatus.textContent = "Photo uploaded successfully.";
+    requestFormStatus.classList.add("success");
+  } catch (error) {
+    console.error("Photo upload failed", error);
+    requestFormStatus.textContent = "Photo could not be uploaded. Please try a smaller image.";
+    requestFormStatus.classList.remove("success");
+    requestFormStatus.classList.add("error");
+  } finally {
+    event.target.value = "";
+  }
 }
 
 function matchingMembers() {
@@ -2243,14 +2327,20 @@ function showDetails(id) {
   const member = getMember(id);
   if (!member) return;
   const details = detailsForMember(member);
+  const portraitPhoto = photoForMember(member);
 
   detailPortrait.style.setProperty("--portrait-color", generationColors[member.generation]);
   detailPortrait.innerHTML = "";
-  if (member.photo) {
+  if (portraitPhoto) {
     const photo = document.createElement("img");
-    photo.src = member.photo;
+    photo.src = portraitPhoto;
     photo.alt = `${member.name} photo`;
     photo.loading = "lazy";
+    photo.addEventListener("error", () => {
+      detailPortrait.innerHTML = "";
+      detailPortrait.textContent = initials(member.name);
+      detailPortrait.classList.remove("has-photo");
+    }, { once: true });
     detailPortrait.appendChild(photo);
     detailPortrait.classList.add("has-photo");
   } else {
@@ -2461,6 +2551,7 @@ document.addEventListener("keydown", (event) => {
 requestAccessButton.addEventListener("click", submitUpdateRequest);
 requestEditButton.addEventListener("click", navigateToRequestAccess);
 saveDetailButton.addEventListener("click", saveCurrentDetails);
+photoUploadInput?.addEventListener("change", uploadCurrentPhoto);
 factCalendarInputs.forEach((calendar, index) => {
   const target = dateDetailFields[index];
   calendar.addEventListener("change", () => {
