@@ -36,7 +36,8 @@
         <form class="auth-form" id="authForm" novalidate>
           <label class="auth-field">
             <span id="authContactLabel">Email Address</span>
-            <input id="authContact" type="email" autocomplete="email" placeholder="name@example.com" />
+            <input id="authContact" type="email" autocomplete="email" list="emailSuggestions" placeholder="" />
+            <datalist id="emailSuggestions"></datalist>
           </label>
           <p class="auth-error" id="authContactError" role="alert"></p>
 
@@ -169,7 +170,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.12.5/firebase-auth-compat.js"></script>
     <script src="firebase-config.js?v=20260717-layout-fix"></script>
-    <script src="auth.js?v=20260718-feedback-form"></script>
+    <script src="auth.js?v=20260718-email-suggestions"></script>
     <script src="full-tree.js?v=20260717-layout-fix"></script>
     <script src="branch-tree.js?v=20260717-layout-fix"></script>
   </body>

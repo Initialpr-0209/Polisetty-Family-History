@@ -6,6 +6,7 @@ const authForm = document.querySelector("#authForm");
 const authContact = document.querySelector("#authContact");
 const authContactLabel = document.querySelector("#authContactLabel");
 const authContactError = document.querySelector("#authContactError");
+const emailSuggestions = document.querySelector("#emailSuggestions");
 const otpSection = document.querySelector("#otpSection");
 const authOtp = document.querySelector("#authOtp");
 const authOtpField = authOtp?.closest(".auth-field");
@@ -30,6 +31,8 @@ const inactivityLimitMs = 10 * 60 * 1000;
 let inactivityTimer = 0;
 let toastTimer = 0;
 let pendingContact = "";
+
+const emailDomains = ["gmail.com", "yahoo.com", "outlook.com", "hotmail.com", "icloud.com"];
 
 const firebaseSettings = window.POLISETTY_FIREBASE || {};
 const firebaseReady = Boolean(
@@ -88,6 +91,25 @@ function resetEmailLinkStatus() {
   authOtpError.textContent = "";
   authSubmit.textContent = "Send Sign-In Link";
   authSubmit.disabled = false;
+}
+
+function updateEmailSuggestions() {
+  if (!authContact || !emailSuggestions) return;
+  const value = authContact.value.trim().toLowerCase();
+  emailSuggestions.innerHTML = "";
+  if (!value) return;
+
+  const [localPart, typedDomain = ""] = value.split("@");
+  if (!localPart || value.includes(" ")) return;
+
+  const matchingDomains = emailDomains.filter((domain) => domain.startsWith(typedDomain));
+  const domains = typedDomain ? matchingDomains : emailDomains;
+
+  domains.slice(0, 5).forEach((domain) => {
+    const option = document.createElement("option");
+    option.value = `${localPart}@${domain}`;
+    emailSuggestions.appendChild(option);
+  });
 }
 
 function closeSiteMenu() {
@@ -200,7 +222,7 @@ function resetAuthForm() {
     authContact.type = "email";
     authContact.inputMode = "email";
     authContact.autocomplete = "email";
-    authContact.placeholder = "name@example.com";
+    authContact.placeholder = "";
   }
   if (authContactLabel) authContactLabel.textContent = "Email Address";
   resetEmailLinkStatus();
@@ -425,6 +447,7 @@ if (authSection && authForm) {
   googleSignInButton?.addEventListener("click", signInWithGoogle);
   authContact.addEventListener("input", () => {
     authContactError.textContent = "";
+    updateEmailSuggestions();
     resetEmailLinkStatus();
   });
   authForm.addEventListener("submit", handleAuthSubmit);

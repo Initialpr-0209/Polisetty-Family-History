@@ -1577,6 +1577,7 @@ let treeScrollUnlocked = false;
 let treeScrollFrame = null;
 let generationScrollLocked = false;
 const accessRequestAdminEmail = "vinnuharshu0399@gmail.com";
+const familyAuthKey = "polisettyFamilyAuth";
 const approvedAccessKey = "polisettyEditAccessApproved";
 const savedDetailKey = "polisettySavedPersonDetails";
 const editableDetailFields = [detailBirth, detailDeath, detailMarriage, detailRelation, detailPlace, detailOccupation, detailStudies];
@@ -1796,19 +1797,51 @@ function resetUpdateRequestForm(member) {
   }
 }
 
-function submitUpdateRequest() {
+function currentSignedInContact() {
+  try {
+    const cached = JSON.parse(localStorage.getItem(familyAuthKey) || "{}");
+    return cached.contact || window.firebase?.auth?.().currentUser?.email || "";
+  } catch {
+    return window.firebase?.auth?.().currentUser?.email || "";
+  }
+}
+
+function firestoreDb() {
+  if (!window.firebase?.firestore) return null;
+  return window.firebase.firestore();
+}
+
+async function submitUpdateRequest() {
   const member = getMember(selectedId);
   const requestPayload = {
     adminEmail: accessRequestAdminEmail,
+    userContact: currentSignedInContact(),
+    memberId: member.id,
     memberName: member.name,
     generation: generationNames[member.generation],
     relation: member.relation,
+    status: "pending",
     requestedAt: new Date().toISOString(),
+    pageUrl: window.location.href,
   };
 
-  console.info("Access request ready for backend email notification", requestPayload);
-  requestFormStatus.textContent = "The request access has been sent successfully. Please wait for the approval...";
-  requestFormStatus.classList.add("success");
+  requestAccessButton.disabled = true;
+  requestFormStatus.textContent = "Sending access request...";
+  requestFormStatus.classList.remove("success", "error");
+
+  try {
+    const db = firestoreDb();
+    if (!db) throw new Error("Firestore is not enabled yet.");
+    await db.collection("accessRequests").add(requestPayload);
+    requestFormStatus.textContent = "The request access has been sent successfully. Please wait for the approval...";
+    requestFormStatus.classList.add("success");
+  } catch (error) {
+    console.error("Access request could not be submitted", error, requestPayload);
+    requestFormStatus.textContent = "Access request could not be submitted. Please enable Firebase Firestore and try again.";
+    requestFormStatus.classList.add("error");
+  } finally {
+    requestAccessButton.disabled = false;
+  }
 }
 
 function navigateToRequestAccess() {
