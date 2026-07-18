@@ -1577,7 +1577,7 @@ let treeScrollUnlocked = false;
 let treeScrollFrame = null;
 let generationScrollLocked = false;
 const accessRequestAdminEmail = "vinnuharshu0399@gmail.com";
-const familyAuthKey = "polisettyFamilyAuth";
+const appFamilyAuthStorageKey = "polisettyFamilyAuth";
 const approvedAccessKey = "polisettyEditAccessApproved";
 const savedDetailKey = "polisettySavedPersonDetails";
 const editableDetailFields = [detailBirth, detailDeath, detailMarriage, detailRelation, detailPlace, detailOccupation, detailStudies];
@@ -1799,7 +1799,7 @@ function resetUpdateRequestForm(member) {
 
 function currentSignedInContact() {
   try {
-    const cached = JSON.parse(localStorage.getItem(familyAuthKey) || "{}");
+    const cached = JSON.parse(localStorage.getItem(appFamilyAuthStorageKey) || "{}");
     return cached.contact || window.firebase?.auth?.().currentUser?.email || "";
   } catch {
     return window.firebase?.auth?.().currentUser?.email || "";
