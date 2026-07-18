@@ -1,4 +1,4 @@
-const familyAuthKey = "polisettyFamilyAuth";
+﻿const familyAuthKey = "polisettyFamilyAuth";
 const pendingEmailKey = "polisettyPendingEmail";
 const authBody = document.body;
 const authSection = document.querySelector("#siteAuth");
@@ -208,7 +208,7 @@ async function sendEmailLink() {
   try {
     await firebaseAuth.sendSignInLinkToEmail(email, getActionCodeSettings());
     localStorage.setItem(pendingEmailKey, email);
-    otpHint.textContent = "A secure sign-in link has been sent to your email. Open that link to enter the family tree.";
+    otpHint.textContent = "A secure sign-in link has been sent to your email. Open that link to enter the family legacy.";
     otpSection.hidden = false;
     otpSection.style.display = "";
     if (authOtpField) {
@@ -337,3 +337,4 @@ if (authSection && authForm) {
 
   initializeAuth();
 }
+
